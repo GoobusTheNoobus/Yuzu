@@ -40,17 +40,12 @@ target_compile_options(yuzu PRIVATE
 
     # release flags
     $<$<CONFIG:Release>:-O3>
-    $<$<CONFIG:Release>:-march=native>
-    $<$<CONFIG:Release>:-mbmi2>
     $<$<CONFIG:Release>:-flto>
     $<$<CONFIG:Release>:-DNDEBUG>
 )
 
 # linking
 target_link_options(yuzu PRIVATE
-    $<$<CONFIG:Release>:-O3>
-    $<$<CONFIG:Release>:-march=native>
-    $<$<CONFIG:Release>:-mbmi2>
     $<$<CONFIG:Release>:-flto>
     $<$<CONFIG:Debug>:-fsanitize=address,undefined>
 )

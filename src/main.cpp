@@ -24,7 +24,17 @@
 #include <sstream>
 #include <string>
 
-constexpr const char* VERSION = "0.1.1";
+constexpr const char* VERSION = "0.1.2";
+constexpr const char* HELP_MESSAGE = 
+"Yuzu Compiler 0.1.1\n"
+"\n"
+"Usage:\n"
+"    yuzu <file>\n"
+"    yuzu [options] <file>\n"
+"\n"
+"Options:\n"
+"    -h, --help       Show this help message\n"
+"    -v, --version    Show compiler version\n";
 
 int main(int argc, char** argv)
 {
@@ -50,11 +60,16 @@ int main(int argc, char** argv)
     if (arg1 == "--version" || arg1 == "-v")
     {
         std::cout << "Yuzu" << VERSION << std::endl;
-
+        return EXIT_SUCCESS;
+    } 
+    
+    else if (arg1 == "--help" || arg1 == "-h")
+    {
+        std::cout << HELP_MESSAGE << std::endl;
         return EXIT_SUCCESS;
     }
 
-    std::string filename = arg1;
+    std::string filename = std::move(arg1);
 
     // read file
     std::ifstream file(filename);
