@@ -12,10 +12,8 @@ will work, will decide later when designing the GC).
 As of version 0.1.1, here are the features that has been implemented:
 * [x] File reader
 * [x] Lexer
-
-Here are the planned additions
-* Parser
-* Semantic analysis
-* Better type system
-* LLVM Codegen
-* Better README
+* [ ] Parser
+* [ ] Semantic analysis
+* [ ] Better type system
+* [ ] LLVM Codegen
+* [ ] Better README
