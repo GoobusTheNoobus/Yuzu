@@ -1,0 +1,12 @@
+# tests whether the full word is parsed correctly
+x
+hello
+hello_world
+_private
+_private_value
+snake_case
+abc123
+value2
+_123
+CONSTANT_VARIABLE
+PascalCase

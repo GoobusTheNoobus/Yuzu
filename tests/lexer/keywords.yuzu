@@ -1,0 +1,7 @@
+# all the keywords yuzu currently supports
+let
+func
+return
+exit
+true
+false

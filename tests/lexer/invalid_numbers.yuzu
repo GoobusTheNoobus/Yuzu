@@ -1,0 +1,2 @@
+# this file should raise an error by the lexer
+3.67.67 # <- war crime
