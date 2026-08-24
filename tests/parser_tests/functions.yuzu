@@ -1,0 +1,27 @@
+# tests functions
+
+func main(): void {
+}
+
+func add(a: i64, b: i64): i64 {
+    return a + b;
+}
+
+func square(x: i64): i64 {
+    return x * x;
+}
+func complicated(a: i64, b: i64, c: i64): i64 {
+    let x = a + b * c;
+    return x;
+}
+
+# calls
+foo();
+food();
+
+foo(1, 2);
+food("Burger");
+
+foo(bar());
+foo(bar(), baz());
+foo(bar(6, 7), baz("haha the previous function said a very funny number"));

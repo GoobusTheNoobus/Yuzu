@@ -20,13 +20,13 @@
 
 namespace yuzu
 {
-    inline void raiseError(const std::string& msg)
+    inline void raise_error(const std::string& msg)
     {
         std::cerr << "FATAL ERROR: " << msg << std::endl;
         std::exit(1);
     }
 
-    inline void raiseWarning(const std::string& msg)
+    inline void raise_warning(const std::string& msg)
     {
         std::cerr << "WARNING: " << msg << std::endl;
     }

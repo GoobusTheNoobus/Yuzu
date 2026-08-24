@@ -50,12 +50,12 @@ namespace yuzu
             STATEMENT_RETURN,
             STATEMENT_VARDECL, // assignments are just binaryops 
             STATEMENT_FUNC,
-            STATEMENT_CALL,
 
             OPERATION_BINARY,
             OPERATION_UNARY,
 
             CAST,
+            CALL,
         };
 
         // abstract type
@@ -89,19 +89,27 @@ namespace yuzu
                 : Node(NodeType::OPERATION_UNARY), operand(operand), op(op) {}
         };
 
+        struct Call : Node { Node* callee; std::vector<Node*> args; Call(Node* callee, const std::vector<Node*>& args) 
+            : Node(NodeType::CALL), callee(callee), args(args) {} };
+
         // do not question my formatting 
+
+        struct FuncParam { std::string name, type; };
 
         struct StmExit    : Node { Node* status; StmExit(Node* status) : Node(NodeType::STATEMENT_EXIT), status(status) {} };
         struct StmReturn  : Node { Node* value; StmReturn(Node* value) : Node(NodeType::STATEMENT_RETURN), value(value) {} };
-        struct StmFunc    : Node { std::string name; Block block; StmFunc(Block& block, std::string& name) 
-                                                             : Node(NodeType::STATEMENT_FUNC), block(block), name(name) {} };
-        struct StmCall    : Node { Node* callee; StmCall(Node* callee) : Node(NodeType::STATEMENT_CALL), callee(callee) {} };
+        struct StmFunc    : Node 
+        { 
+            std::vector<FuncParam> args; std::string name; std::string type; Block* block;
+            StmFunc(Block* block, std::string& name, std::string& type, std::vector<FuncParam> args) 
+                    : Node(NodeType::STATEMENT_FUNC), block(block), name(name), type(type), args(args) {} };;
         struct StmVarDecl : Node 
         { 
-            OpBinary ass; // short for assignment
-            StmVarDecl(OpBinary& ass) : Node(NodeType::STATEMENT_VARDECL), ass(ass) 
+            OpBinary* ass; // short for assignment
+            std::string type;
+            StmVarDecl(OpBinary* ass, std::string& type) : Node(NodeType::STATEMENT_VARDECL), ass(ass), type(type)
             {
-                assert(ass.op == Token::Type::OPERATOR_ASSIGNMENT);
+                assert(ass->op == Token::Type::OPERATOR_ASSIGNMENT);
             }
         };
 
@@ -113,11 +121,13 @@ namespace yuzu
         };
 
         SyntaxTree() = default;
+        ~SyntaxTree() = default;
         void free_all();
         void pretty_print();
+        void pretty_print(const Node* node, int indent);
 
-        template <typename T, typename ...Args>
-        T* make_node(Args&&... args)
+        template <typename T, typename ... Args>
+        T* make(Args&& ... args)
         {
             T* node = new T(std::forward<Args>(args)...);
             nodes.push_back(node);

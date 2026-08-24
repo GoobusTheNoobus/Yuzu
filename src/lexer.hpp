@@ -29,18 +29,27 @@ namespace yuzu
     class Lexer 
     {
         public:
-        Lexer(const std::string& str);
+        Lexer(const std::string& str) : source_(str) {}
         std::vector<Token> tokenize();
 
         private:
         std::string source_;
-        size_t pos_;
+        size_t pos_ = 0;
         std::vector<Token>* p_tokens_;
 
-        inline char current() { return source_.at(pos_); }
+        inline char peek() const { return end() ? '\0' : source_.at(pos_); }
         inline char next() { return source_.at(pos_++); }
-        inline bool end() { return pos_ >= source_.size(); }
-        inline bool expect(char c) { if (next() != c) return false; return true; }
+        inline bool end() const { return pos_ >= source_.size(); }
+        inline bool match(char c) 
+        { 
+            if (end() || peek() != c)
+            {
+                return false;
+            }
+
+            next();
+            return true;
+        }
 
         void tokenize_word(); // word as in identifier/keyword
         void tokenize_num();

@@ -25,14 +25,6 @@
 
 namespace yuzu
 {
-
-    // copies the file content into the internal string state
-    Lexer::Lexer(const std::string& str)
-    {
-        source_ = str;
-        pos_ = 0;
-    }
-
     std::vector<Token> Lexer::tokenize()
     {
         std::vector<Token> tokens;
@@ -40,7 +32,7 @@ namespace yuzu
 
         while (!end())
         {
-            char c = current();
+            char c = peek();
 
             // skip all space characters, like space, types, and new lines
             if (std::isspace(c)) 
@@ -88,16 +80,16 @@ namespace yuzu
             tokenize_symbol();
         }
 
-        tokens.push_back(Token{"", Token::Type::END_OF_FILE});
+        tokens.push_back(Token{"EOF", Token::Type::END_OF_FILE});
         return tokens;
     }
 
     void Lexer::tokenize_word()
     {
-        std::string word(1, current());
+        std::string word(1, peek());
         next();
 
-        while (!end() && (current() == '_' || std::isalnum(current())))
+        while (!end() && (peek() == '_' || std::isalnum(peek())))
         {
             char c = next();
             word += c;
@@ -120,7 +112,7 @@ namespace yuzu
         std::string num;
         bool is_float = false;
 
-        while (!end() && (current() == '.' || std::isdigit(current())))
+        while (!end() && (peek() == '.' || std::isdigit(peek())))
         {
             char c = next();
             num += c;
@@ -129,7 +121,7 @@ namespace yuzu
             {
                 if (is_float)
                 {
-                    raiseError("Extra dot in float literal");
+                    raise_error("Extra dot in float literal");
                 }
 
                 is_float = true;
@@ -140,7 +132,7 @@ namespace yuzu
 
         if (num.at(num.size() - 1) == '.')
         {
-            raiseError("Float literal cannot terminate with '.'");
+            raise_error("Float literal cannot terminate with '.'");
         }
 
         p_tokens_->push_back(Token{num, is_float ? Token::Type::LITERAL_FLOAT : Token::Type::LITERAL_INT});
@@ -165,7 +157,7 @@ namespace yuzu
         // we first check for separator
 
         Token seperator {"", Token::Type::END_OF_FILE};
-        char c = current();
+        char c = peek();
         switch (c)
         {
             case ';': seperator = {";", Token::Type::SEMICOLON};        break;
@@ -238,7 +230,7 @@ namespace yuzu
             return;
         }
 
-        raiseError("Unknown operator symbol " + std::string(1, c));
+        raise_error("Unknown operator symbol " + std::string(1, c));
     }
 
     void Lexer::tokenize_string()
@@ -246,7 +238,7 @@ namespace yuzu
         next(); // consume "
         std::string string;
 
-        while (!end() && current() != '"')
+        while (!end() && peek() != '"')
         {
             char c = next();
             if (c != '\\')
@@ -275,21 +267,21 @@ namespace yuzu
                     case '"': intended_character = '"'; break; // different for strings and chars
 
                     default: 
-                        raiseError("Unknown escape character '" + std::string(1, escape_character) + "'");
+                        raise_error("Unknown escape character '" + std::string(1, escape_character) + "'");
                 }
 
                 string += intended_character;
                 
                 if (intended_character == '\0')
                 {
-                    raiseWarning("Null character in string literal can result in the literal ending at the character");
+                    raise_warning("Null character in string literal can result in the literal ending at the character");
                 }
             }
         }
 
         if (end())
         {
-            raiseError("Unterminated string literal");
+            raise_error("Unterminated string literal");
         }
 
         next(); // consume closing quote
@@ -300,13 +292,13 @@ namespace yuzu
     {
         next(); // consume '
 
-        if (current() == '\\')
+        if (peek() == '\\')
         {
             next(); // consume '\'
 
-            if (current() == '\'')
+            if (peek() == '\'')
             {
-                raiseError("Empty character literal");
+                raise_error("Empty character literal");
             }
 
             char escape_character = next();
@@ -327,7 +319,7 @@ namespace yuzu
                 case '\'': intended_character = '\''; break; // different for strings and chars
 
                 default: 
-                    raiseError("Unknown escape character '" + std::string(1, escape_character) + "'");
+                    raise_error("Unknown escape character '" + std::string(1, escape_character) + "'");
             }
 
             p_tokens_->push_back(Token{std::string(1, intended_character), Token::Type::LITERAL_CHAR});
@@ -340,16 +332,16 @@ namespace yuzu
             p_tokens_->push_back(Token{std::string(1, c), Token::Type::LITERAL_CHAR});
         }
 
-        if (!expect('\'')) // expect closing quote
+        if (!match('\'')) // expect closing quote
         {
-            raiseError("Unterminated char literal");
+            raise_error("Unterminated char literal");
         }
     }
 
     void Lexer::skip_comment()
     {
         next();
-        while (!end() && current() != '\n')
+        while (!end() && peek() != '\n')
         {
             next();
         }

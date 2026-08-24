@@ -60,6 +60,19 @@ namespace yuzu
         return (int)type > (int)Token::Type::DOT ? "UNKNOWN": map[(int)type];
     }
 
+    std::string operator_to_string(Token::Type type)
+    {
+        switch (type) {
+            case Token::Type::OPERATOR_PLUS:            return "+";
+            case Token::Type::OPERATOR_ASSIGNMENT:      return "=";
+            case Token::Type::OPERATOR_MINUS:           return "-";
+            case Token::Type::OPERATOR_PERCENT:         return "%";
+            case Token::Type::OPERATOR_SLASH:           return "/";
+            case Token::Type::OPERATOR_STAR:            return "*";
+            default:                                    return "??? idk vro";
+        }
+    }
+
     std::ostream& operator<<(std::ostream& os, const Token& token)
     {
         os << "{ type: " << token_type_to_string(token.type) << ", value: '" << token.value << "' }";

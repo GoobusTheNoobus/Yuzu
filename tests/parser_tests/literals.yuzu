@@ -1,0 +1,10 @@
+# test whether literals are parsed correctly
+
+42;
+-123;
+0;
+3.14159;
+true;
+false;
+"hello";
+'a';

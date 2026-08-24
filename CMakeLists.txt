@@ -27,6 +27,8 @@ add_executable(yuzu
     src/main.cpp
     src/lexer.cpp
     src/token.cpp
+    src/ast.cpp
+    src/parser.cpp
 )
 
 target_include_directories(yuzu PRIVATE src)

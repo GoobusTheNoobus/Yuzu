@@ -68,6 +68,7 @@ namespace yuzu
     };
 
     std::string token_type_to_string(Token::Type);
+    std::string operator_to_string(Token::Type);
 
     // i could define these in the header, but I need an excuse to have a token.cpp
     std::ostream& operator<<(std::ostream&, const Token&);

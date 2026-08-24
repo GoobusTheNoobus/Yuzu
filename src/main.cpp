@@ -16,15 +16,17 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include "ast.hpp"
 #include "error.hpp"
 #include "lexer.hpp"
+#include "parser.hpp"
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
 
-constexpr const char* VERSION = "0.1.2";
+constexpr const char* VERSION = "0.1.3";
 constexpr const char* HELP_MESSAGE = 
 "Yuzu Compiler 0.1.1\n"
 "\n"
@@ -36,20 +38,27 @@ constexpr const char* HELP_MESSAGE =
 "    -h, --help       Show this help message\n"
 "    -v, --version    Show compiler version\n";
 
+void process(const std::string& source);
+
 int main(int argc, char** argv)
 {
     // read -> eval -> print -> loop
 
     if (argc <= 1)
     {
+        std::cout << "REPL shell\n";
         while (true)
         {
             std::cout << "> ";
             std::string input;
             std::getline(std::cin, input);
 
+            input.append(";");
+
             if (input == "quit")
                 break;
+
+            process(input);
         }
 
         return EXIT_SUCCESS;
@@ -75,7 +84,7 @@ int main(int argc, char** argv)
     std::ifstream file(filename);
     if (!file.is_open())
     {
-        yuzu::raiseError("Cannot open source file '" + filename + "'");
+        yuzu::raise_error("Cannot open source file '" + filename + "'");
     }
 
     std::stringstream buffer;
@@ -83,8 +92,17 @@ int main(int argc, char** argv)
 
     std::string file_content = buffer.str();
 
-    yuzu::Lexer lexer(file_content);
+    process(file_content);
+}
+
+void process(const std::string& source)
+{
+    yuzu::Lexer lexer(source);
     auto tokens = lexer.tokenize();
 
-    std::cout << tokens << std::endl;
+    yuzu::Parser parser(tokens);
+    yuzu::SyntaxTree tree = parser.parse();
+
+    tree.pretty_print();
+    tree.free_all();
 }
