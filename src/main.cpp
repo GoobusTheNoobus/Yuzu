@@ -16,19 +16,20 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "ast.hpp"
-#include "error.hpp"
-#include "lexer.hpp"
-#include "parser.hpp"
+#include "frontend/parser/ast.hpp"
+#include "core/error.hpp"
+#include "frontend/lexer/lexer.hpp"
+#include "frontend/parser/parser.hpp"
+
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
 
-constexpr const char* VERSION = "0.1.3";
+constexpr const char* VERSION = "0.1.4";
 constexpr const char* HELP_MESSAGE = 
-"Yuzu Compiler 0.1.1\n"
+"Yuzu Compiler 0.1.4\n"
 "\n"
 "Usage:\n"
 "    yuzu <file>\n"
@@ -68,7 +69,7 @@ int main(int argc, char** argv)
 
     if (arg1 == "--version" || arg1 == "-v")
     {
-        std::cout << "Yuzu" << VERSION << std::endl;
+        std::cout << "Yuzu " << VERSION << std::endl;
         return EXIT_SUCCESS;
     } 
     

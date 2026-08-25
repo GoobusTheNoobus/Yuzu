@@ -7,4 +7,4 @@ func main(a: i64, b: i64): i64 {
     x = y * (a - b) + foo(1 + 2, 3 * 4);
 
     return x + y * 2 - (a / b + 7 % 3);
-};
+}

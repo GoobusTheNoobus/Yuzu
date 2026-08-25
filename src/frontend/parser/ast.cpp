@@ -16,8 +16,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "ast.hpp"
-#include "token.hpp"
+#include "frontend/parser/ast.hpp"
+#include "frontend/lexer/token.hpp"
 #include <cassert>
 #include <cfloat>
 #include <iostream>
@@ -122,7 +122,12 @@ namespace yuzu
 
                 pretty_print(operation->left, indent + 2);
                 std::cout << get_indent(indent + 2) << operator_to_string(operation->op) << std::endl;
-                pretty_print(operation->right, indent + 2);
+
+                // account for uninitialized variable
+                if (operation->right)
+                    pretty_print(operation->right, indent + 2);
+                else
+                    std::cout << get_indent(indent + 2) << "None";
 
                 std::cout << get_indent(indent) << ")" << std::endl;
 

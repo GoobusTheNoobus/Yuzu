@@ -16,10 +16,11 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "parser.hpp"
-#include "ast.hpp"
-#include "token.hpp"
-#include "error.hpp"
+#include "frontend/parser/parser.hpp"
+#include "frontend/parser/ast.hpp"
+#include "frontend/lexer/token.hpp"
+#include "core/error.hpp"
+
 #include <cassert>
 #include <charconv>
 #include <cstdint>
@@ -62,17 +63,17 @@ namespace yuzu
                     raise_error("Expected identifier, got '" + peek().value + "'");
                 
 
-                std::string name = peek().value;
+                std::string name = next().value;
                 std::string type;
 
+                std::cout << token_type_to_string(peek().type) << std::endl;
                 if (match(Token::Type::COLON))
                 {
                     if (!check(Token::Type::IDENTIFIER))
                         raise_error("Expected type name, got '" + peek().value + "'");
 
                     type = next().value;
-                } else {
-                    next();
+                    std::cout << type << std::endl;
                 }
 
                 SyntaxTree::Node* value = nullptr;

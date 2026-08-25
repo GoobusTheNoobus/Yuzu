@@ -25,10 +25,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_executable(yuzu
     src/main.cpp
-    src/lexer.cpp
-    src/token.cpp
-    src/ast.cpp
-    src/parser.cpp
+    src/frontend/lexer/lexer.cpp
+    src/frontend/lexer/token.cpp
+    src/frontend/parser/ast.cpp
+    src/frontend/parser/parser.cpp
 )
 
 target_include_directories(yuzu PRIVATE src)
@@ -39,11 +39,15 @@ target_compile_options(yuzu PRIVATE
     $<$<CONFIG:Debug>:-g>
     $<$<CONFIG:Debug>:-O0>
     $<$<CONFIG:Debug>:-fsanitize=address,undefined>
+    $<$<CONFIG:Debug>:-Isrc>
 
     # release flags
     $<$<CONFIG:Release>:-O3>
     $<$<CONFIG:Release>:-flto>
     $<$<CONFIG:Release>:-DNDEBUG>
+    $<$<CONFIG:Release>:-Isrc>
+
+
 )
 
 # linking

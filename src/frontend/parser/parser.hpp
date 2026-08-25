@@ -18,8 +18,8 @@
 
 #pragma once
 
-#include "ast.hpp"
-#include "token.hpp"
+#include "frontend/parser/ast.hpp"
+#include "frontend/lexer/token.hpp"
 #include <algorithm>
 #include <cstddef>
 #include <vector>

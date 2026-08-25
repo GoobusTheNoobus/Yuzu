@@ -17,7 +17,7 @@
 */
 
 #pragma once
-#include "token.hpp"
+#include "frontend/lexer/token.hpp"
 #include <cstddef>
 #include <string>
 #include <vector>

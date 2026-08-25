@@ -16,9 +16,10 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "lexer.hpp"
-#include "token.hpp"
-#include "error.hpp"
+#include "frontend/lexer/lexer.hpp"
+#include "frontend/lexer/token.hpp"
+#include "core/error.hpp"
+
 #include <cctype>
 #include <cstdlib>
 #include <string>

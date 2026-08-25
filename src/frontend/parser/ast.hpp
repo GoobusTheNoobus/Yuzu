@@ -18,11 +18,12 @@
 
 #pragma once
 
-#include "token.hpp"
+#include "frontend/lexer/token.hpp"
 #include <cassert>
 #include <cstdint>
 #include <string>
 #include <vector>
+
 namespace yuzu
 {
     // represents the entire ast, not just a node
