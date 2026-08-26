@@ -34,6 +34,9 @@ namespace yuzu
     using i32 = int32_t;
     using i64 = int64_t;
 
+    using f32 = float;
+    using f64 = double;
+
     using usize = std::size_t;
     using isize = std::ptrdiff_t;
 }

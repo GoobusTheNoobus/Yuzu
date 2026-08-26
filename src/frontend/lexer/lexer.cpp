@@ -181,57 +181,146 @@ namespace yuzu
             return;
         }
 
-        /*
-            Operators:
-            - '+'
-            - '-'
-            - '*'
-            - '/'
-            - '%'
-            - '='
-        */
-
         next();
 
-        // we use if statements to handle multi-character
-        // operators. not needed right now though
-        if (c == '+')
+        switch (c) 
         {
-            p_tokens_->push_back(Token{"+", Token::Type::OPERATOR_PLUS});
-            return;
-        }
+            case '+':
+            {
+                p_tokens_->push_back(Token{"+", Token::Type::OPERATOR_PLUS});
+                break;
+            }
 
-        if (c == '-')
-        {
-            p_tokens_->push_back(Token{"-", Token::Type::OPERATOR_MINUS});
-            return;
-        }
+            case '-':
+            {
+                p_tokens_->push_back(Token{"-", Token::Type::OPERATOR_MINUS});
+                break;
+            }
 
-        if (c == '*')
-        {
-            p_tokens_->push_back(Token{"*", Token::Type::OPERATOR_STAR});
-            return;
-        }
+            case '*':
+            {
+                p_tokens_->push_back(Token{"*", Token::Type::OPERATOR_STAR});
+                break;
+            }
 
-        if (c == '/')
-        {
-            p_tokens_->push_back(Token{"/", Token::Type::OPERATOR_SLASH});
-            return;
-        }
+            case '/':
+            {
+                p_tokens_->push_back(Token{"/", Token::Type::OPERATOR_SLASH});
+                break;
+            }
 
-        if (c == '%')
-        {
-            p_tokens_->push_back(Token{"%", Token::Type::OPERATOR_PERCENT});
-            return;
-        }
+            case '%':
+            {
+                p_tokens_->push_back(Token{"%", Token::Type::OPERATOR_PERCENT});
+                break;
+            }
 
-        if (c == '=')
-        {
-            p_tokens_->push_back(Token{"=", Token::Type::OPERATOR_ASSIGNMENT});
-            return;
-        }
+            case '~':
+            {
+                p_tokens_->push_back(Token{"~", Token::Type::OPERATOR_BITWISE_NOT});
+                break;
+            }
 
-        raise_error("Unknown operator symbol " + std::string(1, c));
+            case '^':
+            {
+                p_tokens_->push_back(Token{"^", Token::Type::OPERATOR_BITWISE_XOR});
+                break;
+            }
+
+            case '=':
+            {
+                if (peek(1) == '=')
+                {
+                    next();
+                    p_tokens_->push_back(Token{"==", Token::Type::OPERATOR_COMP_EQ});
+                    break;
+                }
+
+                p_tokens_->push_back(Token{"=", Token::Type::OPERATOR_ASSIGNMENT});
+                break;
+            }
+
+            case '!':
+            {
+                if (peek(1) == '=')
+                {
+                    next();
+                    p_tokens_->push_back(Token{"!=", Token::Type::OPERATOR_COMP_NEQ});
+                    break;
+                }
+
+                p_tokens_->push_back(Token{"!", Token::Type::OPERATOR_LOGICAL_NOT});
+                break;
+            }
+
+            case '|':
+            {
+                if (peek(1) == '|')
+                {
+                    next();
+                    p_tokens_->push_back(Token{"||", Token::Type::OPERATOR_LOGICAL_OR});
+                    break;
+                }
+
+                p_tokens_->push_back(Token{"|", Token::Type::OPERATOR_BITWISE_OR});
+                break;
+            }
+
+            case '&':
+            {
+                if (peek(1) == '&')
+                {
+                    next();
+                    p_tokens_->push_back(Token{"&&", Token::Type::OPERATOR_LOGICAL_AND});
+                    break;
+                }
+
+                p_tokens_->push_back(Token{"|", Token::Type::OPERATOR_BITWISE_AND});
+                break;
+            }
+
+            case '<':
+            {
+                if (peek(1) == '=')
+                {
+                    next();
+                    p_tokens_->push_back(Token{"<=", Token::Type::OPERATOR_COMP_LESSEQ});
+                    break;
+                }
+
+                else if (peek(1) == '<')
+                {
+                    next();
+                    p_tokens_->push_back(Token{"<<", Token::Type::OPERATOR_BITWISE_SHL});
+                    break;
+                }
+
+                p_tokens_->push_back(Token{"<", Token::Type::OPERATOR_COMP_LESS});
+                break;
+            }
+
+            case '>':
+            {
+                if (peek(1) == '=')
+                {
+                    next();
+                    p_tokens_->push_back(Token{">=", Token::Type::OPERATOR_COMP_MOREEQ});
+                    break;
+                }
+
+                else if (peek(1) == '>')
+                {
+                    next();
+                    p_tokens_->push_back(Token{">>", Token::Type::OPERATOR_BITWISE_SHR});
+                    break;
+                }
+
+                p_tokens_->push_back(Token{">", Token::Type::OPERATOR_COMP_MORE});
+                break;
+            }
+
+            default:    raise_error("Unknown operator symbol " + std::string(1, c));
+        }
     }
 
     void Lexer::tokenize_string()

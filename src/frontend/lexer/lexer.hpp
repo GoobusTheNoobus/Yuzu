@@ -18,7 +18,8 @@
 
 #pragma once
 #include "frontend/lexer/token.hpp"
-#include <cstddef>
+#include "core/core.hpp"
+#include <algorithm>
 #include <string>
 #include <vector>
 
@@ -34,12 +35,18 @@ namespace yuzu
 
         private:
         std::string source_;
-        size_t pos_ = 0;
+        usize pos_ = 0;
         std::vector<Token>* p_tokens_;
 
-        inline char peek() const { return end() ? '\0' : source_.at(pos_); }
-        inline char next() { return source_.at(pos_++); }
+        inline char peek(isize offset = 0) const
+        {
+            const auto index = std::clamp<isize>(isize(pos_) + offset, 0, source_.size() - 1);
+
+            return source_.at(index);
+        }
+        inline char next() { ++pos_; return peek(-1); }
         inline bool end() const { return pos_ >= source_.size(); }
+        inline bool check(char c) const { return peek() == c; }
         inline bool match(char c) 
         { 
             if (end() || peek() != c)

@@ -45,6 +45,25 @@ namespace yuzu
             "OPERATOR_PERCENT",
             "OPERATOR_ASSIGNMENT",
 
+            "OPERATOR_LOGICAL_OR",
+            "OPERATOR_LOGICAL_AND",
+            "OPERATOR_BITWISE_OR",
+            "OPERATOR_BITWISE_XOR",
+            "OPERATOR_BITWISE_AND",
+
+            "OPERATOR_COMP_EQ",
+            "OPERATOR_COMP_NEQ",
+
+            "OPERATOR_COMP_LESS",
+            "OPERATOR_COMP_MORE",
+            "OPERATOR_COMP_LESSEQ",
+            "OPERATOR_COMP_MOREEQ",
+
+            "OPERATOR_BITWISE_SHL",
+            "OPERATOR_BITWISE_SHR",
+            "OPERATOR_LOGICAL_NOT",
+            "OPERATOR_BITWISE_NOT",
+
             "LEFT_PAREN",
             "RIGHT_PAREN",
             "LEFT_BRACKET",
@@ -69,6 +88,24 @@ namespace yuzu
             case Token::Type::OPERATOR_PERCENT:         return "%";
             case Token::Type::OPERATOR_SLASH:           return "/";
             case Token::Type::OPERATOR_STAR:            return "*";
+
+            case Token::Type::OPERATOR_LOGICAL_OR:      return "||";
+            case Token::Type::OPERATOR_LOGICAL_AND:     return "&&";
+            case Token::Type::OPERATOR_BITWISE_OR:      return "|";
+            case Token::Type::OPERATOR_BITWISE_AND:     return "&";
+            case Token::Type::OPERATOR_BITWISE_XOR:     return "^";
+            case Token::Type::OPERATOR_COMP_EQ:         return "==";
+            case Token::Type::OPERATOR_COMP_NEQ:        return "!=";
+            
+            case Token::Type::OPERATOR_COMP_LESS:       return "<";
+            case Token::Type::OPERATOR_COMP_MORE:       return ">";
+            case Token::Type::OPERATOR_COMP_LESSEQ:     return "<=";
+            case Token::Type::OPERATOR_COMP_MOREEQ:     return ">=";
+            case Token::Type::OPERATOR_BITWISE_SHL:     return "<<";
+            case Token::Type::OPERATOR_BITWISE_SHR:     return ">>";
+
+            case Token::Type::OPERATOR_BITWISE_NOT:     return "~";
+            case Token::Type::OPERATOR_LOGICAL_NOT:     return "!";
             default:                                    return "??? idk vro";
         }
     }

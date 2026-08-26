@@ -21,7 +21,6 @@
 #include "frontend/parser/ast.hpp"
 #include "frontend/lexer/token.hpp"
 #include <algorithm>
-#include <cstddef>
 #include <vector>
 
 namespace yuzu 
@@ -35,12 +34,12 @@ namespace yuzu
 
         private:
         const std::vector<Token> tokens_;
-        size_t pos_ = 0;
+        usize pos_ = 0;
         SyntaxTree* tree_;
 
-        inline const Token& peek(int offset = 0) const
+        inline const Token& peek(isize offset = 0) const
         {
-            const auto index = std::clamp<std::ptrdiff_t>(std::ptrdiff_t(pos_) + offset, 0, tokens_.size() - 1);
+            const auto index = std::clamp<isize>(isize(pos_) + offset, 0, tokens_.size() - 1);
 
             return tokens_.at(index);
         }
@@ -61,13 +60,23 @@ namespace yuzu
         SyntaxTree::Node* parse_statement();
         SyntaxTree::Node* parse_expression();
         SyntaxTree::Block* parse_block();
+ 
+        SyntaxTree::Node* parse_assignment();
+        SyntaxTree::Node* parse_logical_or();
+        SyntaxTree::Node* parse_logical_and();
+        SyntaxTree::Node* parse_bitwise_or();
+        SyntaxTree::Node* parse_bitwise_xor();
+        SyntaxTree::Node* parse_bitwise_and();
 
-        SyntaxTree::Node *parse_assignment();
-        SyntaxTree::Node *parse_additive();
-        SyntaxTree::Node *parse_multiplicative();
-        SyntaxTree::Node *parse_unary();
-        SyntaxTree::Node *parse_postfix();
-        SyntaxTree::Node *parse_primary();
+        SyntaxTree::Node* parse_eq_comparison();
+        SyntaxTree::Node* parse_lm_comparison();
+        SyntaxTree::Node* parse_bitwise_shifts();
+
+        SyntaxTree::Node* parse_additive();
+        SyntaxTree::Node* parse_multiplicative();
+        SyntaxTree::Node* parse_unary();
+        SyntaxTree::Node* parse_postfix();
+        SyntaxTree::Node* parse_primary();
 
         std::vector<SyntaxTree::FuncParam> parse_parameters();
     };

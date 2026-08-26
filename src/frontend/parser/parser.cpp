@@ -17,6 +17,7 @@
 */
 
 #include "frontend/parser/parser.hpp"
+#include "core/core.hpp"
 #include "frontend/parser/ast.hpp"
 #include "frontend/lexer/token.hpp"
 #include "core/error.hpp"
@@ -235,7 +236,7 @@ namespace yuzu
         {
             case (Token::Type::LITERAL_INT):
             {
-                int64_t value;
+                i64 value;
 
                 auto [ptr, ec] = std::from_chars(token.value.data(), token.value.data() + token.value.size(), value);
 
@@ -311,7 +312,7 @@ namespace yuzu
 
             default:
             {
-                raise_error("Unknown token '" + token.value + "'");
+                raise_error("Expected expression, got '" + token.value + "'");
             }
         }
 
@@ -320,15 +321,144 @@ namespace yuzu
 
     SyntaxTree::Node* Parser::parse_assignment()
     {
-        auto left = parse_additive();
+        auto left = parse_logical_or();
 
         if (match(Token::Type::OPERATOR_ASSIGNMENT))
         {
             Token::Type op = Token::Type::OPERATOR_ASSIGNMENT;
 
-            auto right = parse_assignment();
+            auto right = parse_logical_or();
 
             return tree_->make<SyntaxTree::OpBinary>(left, right, op);
+        }
+
+        return left;
+    }
+
+    SyntaxTree::Node* Parser::parse_logical_or()
+    {
+        auto left = parse_logical_and();
+
+        while (match(Token::Type::OPERATOR_LOGICAL_OR))
+        {
+            Token::Type op = Token::Type::OPERATOR_LOGICAL_OR;
+
+            auto right = parse_logical_and();
+
+            left = tree_->make<SyntaxTree::OpBinary>(left, right, op);
+        }
+
+        return left;
+    }
+
+    SyntaxTree::Node* Parser::parse_logical_and()
+    {
+        auto left = parse_bitwise_or();
+
+        while (match(Token::Type::OPERATOR_LOGICAL_AND))
+        {
+            Token::Type op = Token::Type::OPERATOR_LOGICAL_AND;
+
+            auto right = parse_bitwise_or();
+
+            left = tree_->make<SyntaxTree::OpBinary>(left, right, op);
+        }
+
+        return left;
+    }
+
+    SyntaxTree::Node* Parser::parse_bitwise_or()
+    {
+        auto left = parse_bitwise_xor();
+
+        while (match(Token::Type::OPERATOR_BITWISE_OR))
+        {
+            Token::Type op = Token::Type::OPERATOR_BITWISE_OR;
+
+            auto right = parse_bitwise_xor();
+
+            left = tree_->make<SyntaxTree::OpBinary>(left, right, op);
+        }
+
+        return left;
+    }
+
+    SyntaxTree::Node* Parser::parse_bitwise_xor()
+    {
+        auto left = parse_bitwise_and();
+
+        while (match(Token::Type::OPERATOR_BITWISE_XOR))
+        {
+            Token::Type op = Token::Type::OPERATOR_BITWISE_XOR;
+
+            auto right = parse_bitwise_and();
+
+            left = tree_->make<SyntaxTree::OpBinary>(left, right, op);
+        }
+
+        return left;
+    }
+
+    SyntaxTree::Node* Parser::parse_bitwise_and()
+    {
+        auto left = parse_eq_comparison();
+
+        while (match(Token::Type::OPERATOR_BITWISE_AND))
+        {
+            Token::Type op = Token::Type::OPERATOR_BITWISE_AND;
+
+            auto right = parse_eq_comparison();
+
+            left = tree_->make<SyntaxTree::OpBinary>(left, right, op);
+        }
+
+        return left;
+    }
+
+    SyntaxTree::Node* Parser::parse_eq_comparison()
+    {
+        auto left = parse_lm_comparison();
+
+        while (check(Token::Type::OPERATOR_COMP_EQ) || check(Token::Type::OPERATOR_COMP_NEQ))
+        {
+            Token::Type op = next().type;
+
+            auto right = parse_lm_comparison();
+
+            left = tree_->make<SyntaxTree::OpBinary>(left, right, op);
+        }
+
+        return left;
+    }
+
+    SyntaxTree::Node* Parser::parse_lm_comparison()
+    {
+        auto left = parse_bitwise_shifts();
+
+        while (check(Token::Type::OPERATOR_COMP_LESS) || check(Token::Type::OPERATOR_COMP_LESSEQ) ||
+            check(Token::Type::OPERATOR_COMP_MORE) || check(Token::Type::OPERATOR_COMP_MOREEQ))
+        {
+            Token::Type op = next().type;
+
+            auto right = parse_bitwise_shifts();
+
+            left = tree_->make<SyntaxTree::OpBinary>(left, right, op);
+        }
+
+        return left;
+    }
+
+    SyntaxTree::Node* Parser::parse_bitwise_shifts()
+    {
+        auto left = parse_additive();
+
+        while (check(Token::Type::OPERATOR_BITWISE_SHL) || check(Token::Type::OPERATOR_BITWISE_SHR))
+        {
+            Token::Type op = next().type;
+
+            auto right = parse_additive();
+
+            left = tree_->make<SyntaxTree::OpBinary>(left, right, op);
         }
 
         return left;
@@ -367,7 +497,8 @@ namespace yuzu
 
     SyntaxTree::Node* Parser::parse_unary()
     {
-        if (check(Token::Type::OPERATOR_MINUS))
+        if (check(Token::Type::OPERATOR_MINUS) || check(Token::Type::OPERATOR_PLUS) || 
+            check(Token::Type::OPERATOR_BITWISE_NOT) || check(Token::Type::OPERATOR_LOGICAL_NOT))
         {
             Token::Type op = next().type;
             auto operand = parse_unary();

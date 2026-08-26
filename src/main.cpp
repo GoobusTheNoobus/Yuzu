@@ -27,9 +27,9 @@
 #include <sstream>
 #include <string>
 
-constexpr const char* VERSION = "0.1.4";
+constexpr const char* VERSION = "0.1.5";
 constexpr const char* HELP_MESSAGE = 
-"Yuzu Compiler 0.1.4\n"
+"Yuzu Compiler 0.1.5\n"
 "\n"
 "Usage:\n"
 "    yuzu <file>\n"

@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include "core/core.hpp"
 #include "frontend/lexer/token.hpp"
 #include <cassert>
 #include <cstdint>
@@ -67,8 +68,8 @@ namespace yuzu
 
         struct Id : Node { std::string name; Id(const std::string& name) : Node(NodeType::IDENTIFIER), name(name) {} };
 
-        struct LitInt       : Node { int64_t lit; LitInt(int64_t lit) : Node(NodeType::LITERAL_INT), lit(lit) {} };
-        struct LitFloat     : Node { double lit; LitFloat(double lit) : Node(NodeType::LITERAL_FLOAT), lit(lit) {} };
+        struct LitInt       : Node { i64 lit; LitInt(i64 lit) : Node(NodeType::LITERAL_INT), lit(lit) {} };
+        struct LitFloat     : Node { f64 lit; LitFloat(f64 lit) : Node(NodeType::LITERAL_FLOAT), lit(lit) {} };
         struct LitString    : Node { std::string lit; LitString(std::string lit) : Node(NodeType::LITERAL_STRING), lit(lit) {} };
         struct LitChar      : Node { char lit; LitChar(char lit) : Node(NodeType::LITERAL_CHAR), lit(lit) {} };
         struct LitBool      : Node { bool lit; LitBool(bool lit) : Node(NodeType::LITERAL_BOOL), lit(lit) {} };
