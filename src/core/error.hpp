@@ -17,18 +17,44 @@
 */
 
 #pragma once
+#include <chrono>
 #include <iostream>
+#include <iterator>
+#include <random>
 
 namespace yuzu
 {
+    constexpr const char* ERROR_MESSAGES[] = {
+        "Nice try. Just try harder next time",
+        "SONION :sob:",
+        "Bro, what is this???",
+        "Please reconsider your life choices.",
+        "Yuzu has decided this is unacceptable.",
+        "Interesting thought process there!",
+        "No, just no.",
+        "Who let bro write code",
+        "Did you lose a bet or something?",
+        "I'm telling a trusted adult",
+        "Respectfully what the fuck",
+        "Please go outside",
+        "This is disappointing of you (as your father)",
+        "i could explain the problem, but just look at ts",
+        "Error detected, opinion rejected",
+    };
+
+    
+
     inline void raise_error(const std::string& msg)
     {
-        std::cerr << "FATAL ERROR: " << msg << std::endl;
+        std::mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
+
+        std::cerr << "\033[31mERROR: " << msg  << std::endl;
+        std::cerr << ERROR_MESSAGES[rng() % std::size(ERROR_MESSAGES)] << "\033[0m" << std::endl;
         std::exit(1);
     }
 
     inline void raise_warning(const std::string& msg)
     {
-        std::cerr << "WARNING: " << msg << std::endl;
+        std::cerr << "\033[94mWARNING: " << msg << "\033[0m" << std::endl;
     }
 }

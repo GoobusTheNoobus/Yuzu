@@ -24,7 +24,6 @@
 
 #include <cassert>
 #include <charconv>
-#include <cstdint>
 #include <system_error>
 #include <vector>
 
