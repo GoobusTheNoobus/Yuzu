@@ -16,9 +16,9 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "frontend/parser/ast.hpp"
 #include "core/error.hpp"
 #include "frontend/lexer/lexer.hpp"
+#include "frontend/parser/ast/pretty.hpp"
 #include "frontend/parser/parser.hpp"
 
 #include <cstdlib>
@@ -27,64 +27,43 @@
 #include <sstream>
 #include <string>
 
-constexpr const char* VERSION = "0.1.5";
-constexpr const char* HELP_MESSAGE = 
-"Yuzu Compiler 0.1.5\n"
-"\n"
-"Usage:\n"
-"    yuzu <file>\n"
-"    yuzu [options] <file>\n"
-"\n"
-"Options:\n"
-"    -h, --help       Show this help message\n"
-"    -v, --version    Show compiler version\n";
+constexpr const char* VERSION = "0.1.6";
+constexpr const char* HELP_MESSAGE = "Yuzu Compiler\n"
+                                     "\n"
+                                     "Usage:\n"
+                                     "    yuzu "
+                                     "    yuzu <file>\n"
+                                     "    yuzu [options] <file>\n"
+                                     "\n"
+                                     "Options:\n"
+                                     "    -h, --help       Show this help message\n"
+                                     "    -v, --version    Show compiler version\n";
 
-void process(const std::string& source);
+using namespace yuzu;
 
-int main(int argc, char** argv)
-{
-    // read -> eval -> print -> loop
+int main(int argc, char** argv) {
 
-    if (argc <= 1)
-    {
-        std::cout << "REPL shell\n";
-        while (true)
-        {
-            std::cout << "> ";
-            std::string input;
-            std::getline(std::cin, input);
-
-            input.append(";");
-
-            if (input == "quit")
-                break;
-
-            process(input);
-        }
-
+    if (argc <= 1) {
+        std::cout << HELP_MESSAGE << std::endl;
         return EXIT_SUCCESS;
     }
-    
+
     std::string arg1 = argv[1];
 
-    if (arg1 == "--version" || arg1 == "-v")
-    {
+    if (arg1 == "--version" || arg1 == "-v") {
         std::cout << "Yuzu " << VERSION << std::endl;
         return EXIT_SUCCESS;
-    } 
-    
-    else if (arg1 == "--help" || arg1 == "-h")
-    {
+    }
+
+    else if (arg1 == "--help" || arg1 == "-h") {
         std::cout << HELP_MESSAGE << std::endl;
         return EXIT_SUCCESS;
     }
 
     std::string filename = std::move(arg1);
 
-    // read file
     std::ifstream file(filename);
-    if (!file.is_open())
-    {
+    if (!file.is_open()) {
         yuzu::raise_error("Cannot open source file '" + filename + "'");
     }
 
@@ -93,17 +72,7 @@ int main(int argc, char** argv)
 
     std::string file_content = buffer.str();
 
-    process(file_content);
-}
-
-void process(const std::string& source)
-{
-    yuzu::Lexer lexer(source);
-    auto tokens = lexer.tokenize();
-
-    yuzu::Parser parser(tokens);
-    yuzu::SyntaxTree tree = parser.parse();
-
-    tree.pretty_print();
-    tree.free_all();
+    Lexer lexer(file_content);
+    Parser parser(lexer.tokenize());
+    pretty_print(*parser.parse());
 }

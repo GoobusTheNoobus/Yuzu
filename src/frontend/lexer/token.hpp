@@ -23,75 +23,71 @@
 #include <string>
 #include <vector>
 
-namespace yuzu
-{
-    struct Token
-    {
-        std::string value;
-        enum class Type : uint8_t
-        {
-            END_OF_FILE,
-            IDENTIFIER,
+namespace yuzu {
+struct Token {
+    std::string value;
+    enum class Type : uint8_t {
+        END_OF_FILE,
+        IDENTIFIER,
 
-            LITERAL_INT,
-            LITERAL_FLOAT,
-            LITERAL_STRING,
-            LITERAL_CHAR,
+        LITERAL_INT,
+        LITERAL_FLOAT,
+        LITERAL_STRING,
+        LITERAL_CHAR,
 
-            KEYWORD_EXIT,
-            KEYWORD_RETURN,
-            KEYWORD_TRUE,
-            KEYWORD_FALSE,
-            KEYWORD_LET,
-            KEYWORD_FUNC,
+        KEYWORD_EXIT,
+        KEYWORD_RETURN,
+        KEYWORD_TRUE,
+        KEYWORD_FALSE,
+        KEYWORD_LET,
+        KEYWORD_FUNC,
 
-            OPERATOR_PLUS,  // both unary and binary
-            OPERATOR_MINUS, // both unary and binary
-            OPERATOR_STAR,
-            OPERATOR_SLASH,
-            OPERATOR_PERCENT,
-            OPERATOR_ASSIGNMENT,
+        OPERATOR_PLUS,  // both unary and binary
+        OPERATOR_MINUS, // both unary and binary
+        OPERATOR_STAR,
+        OPERATOR_SLASH,
+        OPERATOR_PERCENT,
+        OPERATOR_ASSIGNMENT,
 
-            OPERATOR_LOGICAL_OR,
-            OPERATOR_LOGICAL_AND,
-            OPERATOR_BITWISE_OR,
-            OPERATOR_BITWISE_XOR,
-            OPERATOR_BITWISE_AND,
+        OPERATOR_LOGICAL_OR,
+        OPERATOR_LOGICAL_AND,
+        OPERATOR_BITWISE_OR,
+        OPERATOR_BITWISE_XOR,
+        OPERATOR_BITWISE_AND,
 
-            OPERATOR_COMP_EQ,
-            OPERATOR_COMP_NEQ,
+        OPERATOR_COMP_EQ,
+        OPERATOR_COMP_NEQ,
 
-            OPERATOR_COMP_LESS,
-            OPERATOR_COMP_MORE,
-            OPERATOR_COMP_LESSEQ,
-            OPERATOR_COMP_MOREEQ,
+        OPERATOR_COMP_LESS,
+        OPERATOR_COMP_MORE,
+        OPERATOR_COMP_LESSEQ,
+        OPERATOR_COMP_MOREEQ,
 
-            OPERATOR_BITWISE_SHL,
-            OPERATOR_BITWISE_SHR,
+        OPERATOR_BITWISE_SHL,
+        OPERATOR_BITWISE_SHR,
 
-            // unary
-            OPERATOR_LOGICAL_NOT,
-            OPERATOR_BITWISE_NOT,
+        // unary
+        OPERATOR_LOGICAL_NOT,
+        OPERATOR_BITWISE_NOT,
 
-            LEFT_PAREN,
-            RIGHT_PAREN,
-            LEFT_BRACKET,
-            RIGHT_BRACKET,
-            LEFT_BRACE,
-            RIGHT_BRACE,
-            SEMICOLON,
-            COLON,
-            DOT,
-            COMMA,
+        LEFT_PAREN,
+        RIGHT_PAREN,
+        LEFT_BRACKET,
+        RIGHT_BRACKET,
+        LEFT_BRACE,
+        RIGHT_BRACE,
+        SEMICOLON,
+        COLON,
+        DOT,
+        COMMA,
 
-            
-        } type;
-    };
+    } type;
+};
 
-    std::string token_type_to_string(Token::Type);
-    std::string operator_to_string(Token::Type);
+std::string token_type_to_string(Token::Type);
+std::string operator_to_string(Token::Type);
 
-    // i could define these in the header, but I need an excuse to have a token.cpp
-    std::ostream& operator<<(std::ostream&, const Token&);
-    std::ostream& operator<<(std::ostream&, const std::vector<Token>&);
-}
+// i could define these in the header, but I need an excuse to have a token.cpp
+std::ostream& operator<<(std::ostream&, const Token&);
+std::ostream& operator<<(std::ostream&, const std::vector<Token>&);
+} // namespace yuzu

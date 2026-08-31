@@ -18,66 +18,64 @@
 
 #pragma once
 
-#include "frontend/parser/ast.hpp"
 #include "frontend/lexer/token.hpp"
+#include "frontend/parser/ast/declarations.hpp"
+#include "frontend/parser/ast/node.hpp"
 #include <algorithm>
+#include <memory>
 #include <vector>
 
-namespace yuzu 
-{
-    // turns token list to abstract syntax tree
-    class Parser
-    {
-        public:
-        Parser(const std::vector<Token>& tokens) : tokens_(tokens) {}
-        SyntaxTree parse();
+namespace yuzu {
+// turns token list to abstract syntax tree
+class Parser {
+  public:
+    Parser(const std::vector<Token>& tokens) : tokens_(tokens) {}
+    std::unique_ptr<Root> parse();
 
-        private:
-        const std::vector<Token> tokens_;
-        usize pos_ = 0;
-        SyntaxTree* tree_;
+  private:
+    const std::vector<Token> tokens_;
+    usize pos_ = 0;
 
-        inline const Token& peek(isize offset = 0) const
-        {
-            const auto index = std::clamp<isize>(isize(pos_) + offset, 0, tokens_.size() - 1);
+    inline const Token& peek(isize offset = 0) const {
+        const auto index = std::clamp<isize>(isize(pos_) + offset, 0, tokens_.size() - 1);
 
-            return tokens_.at(index);
-        }
-        inline const Token& next() { ++pos_; return peek(-1); }
-        inline bool end() const { return pos_ >= tokens_.size(); }
-        inline bool check(Token::Type t) const { return peek().type == t; }
-        inline bool match(Token::Type t) 
-        { 
-            if (end() || peek().type != t)
-            {
-                return false;
-            }
-
-            next();
-            return true;
+        return tokens_.at(index);
+    }
+    inline const Token& next() {
+        ++pos_;
+        return peek(-1);
+    }
+    inline bool end() const { return pos_ >= tokens_.size(); }
+    inline bool check(Token::Type t) const { return peek().type == t; }
+    inline bool match(Token::Type t) {
+        if (end() || peek().type != t) {
+            return false;
         }
 
-        SyntaxTree::Node* parse_statement();
-        SyntaxTree::Node* parse_expression();
-        SyntaxTree::Block* parse_block();
- 
-        SyntaxTree::Node* parse_assignment();
-        SyntaxTree::Node* parse_logical_or();
-        SyntaxTree::Node* parse_logical_and();
-        SyntaxTree::Node* parse_bitwise_or();
-        SyntaxTree::Node* parse_bitwise_xor();
-        SyntaxTree::Node* parse_bitwise_and();
+        next();
+        return true;
+    }
 
-        SyntaxTree::Node* parse_eq_comparison();
-        SyntaxTree::Node* parse_lm_comparison();
-        SyntaxTree::Node* parse_bitwise_shifts();
+    std::unique_ptr<BaseNode> parse_statement();
+    std::unique_ptr<Expression> parse_expression();
+    std::unique_ptr<Block> parse_block();
 
-        SyntaxTree::Node* parse_additive();
-        SyntaxTree::Node* parse_multiplicative();
-        SyntaxTree::Node* parse_unary();
-        SyntaxTree::Node* parse_postfix();
-        SyntaxTree::Node* parse_primary();
+    std::unique_ptr<Expression> parse_logical_or();
+    std::unique_ptr<Expression> parse_logical_and();
+    std::unique_ptr<Expression> parse_bitwise_or();
+    std::unique_ptr<Expression> parse_bitwise_xor();
+    std::unique_ptr<Expression> parse_bitwise_and();
 
-        std::vector<SyntaxTree::FuncParam> parse_parameters();
-    };
-}
+    std::unique_ptr<Expression> parse_eq_comparison();
+    std::unique_ptr<Expression> parse_lm_comparison();
+    std::unique_ptr<Expression> parse_bitwise_shifts();
+
+    std::unique_ptr<Expression> parse_additive();
+    std::unique_ptr<Expression> parse_multiplicative();
+    std::unique_ptr<Expression> parse_unary();
+    std::unique_ptr<Expression> parse_postfix();
+    std::unique_ptr<Expression> parse_primary();
+
+    std::vector<Func::Param> parse_parameters();
+};
+} // namespace yuzu

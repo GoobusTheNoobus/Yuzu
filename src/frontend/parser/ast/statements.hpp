@@ -15,29 +15,25 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 #pragma once
 
-#include <cstddef>
-#include <cstdint>
+#include "frontend/parser/ast/node.hpp"
+#include <memory>
 
 namespace yuzu {
 
-// define pretty type names
+struct Exit : public Statement {
+    std::unique_ptr<Expression> value;
 
-using u8 = uint8_t;
-using u16 = uint16_t;
-using u32 = uint32_t;
-using u64 = uint64_t;
+    Exit(std::unique_ptr<Expression> value) : Statement(NodeKind::EXIT), value(std::move(value)) {}
+};
 
-using i8 = int8_t;
-using i16 = int16_t;
-using i32 = int32_t;
-using i64 = int64_t;
+struct Return : public Statement {
+    std::unique_ptr<Expression> value;
 
-using f32 = float;
-using f64 = double;
-
-using usize = std::size_t;
-using isize = std::ptrdiff_t;
+    Return(std::unique_ptr<Expression> value)
+        : Statement(NodeKind::EXIT), value(std::move(value)) {}
+};
 
 } // namespace yuzu

@@ -18,523 +18,430 @@
 
 #include "frontend/parser/parser.hpp"
 #include "core/core.hpp"
-#include "frontend/parser/ast.hpp"
-#include "frontend/lexer/token.hpp"
 #include "core/error.hpp"
+#include "frontend/lexer/token.hpp"
+#include "frontend/parser/ast/declarations.hpp"
+#include "frontend/parser/ast/expressions.hpp"
+#include "frontend/parser/ast/node.hpp"
+#include "frontend/parser/ast/statements.hpp"
 
 #include <cassert>
 #include <charconv>
+#include <memory>
+#include <optional>
 #include <system_error>
 #include <vector>
 
-namespace yuzu 
-{
+namespace yuzu {
 
-    SyntaxTree Parser::parse()
-    {
-        SyntaxTree tree;
-        tree_ = &tree;
+std::unique_ptr<Root> Parser::parse() {
 
-        auto root = tree.make<SyntaxTree::Root>();
+    auto root = std::make_unique<Root>();
 
-        while (!end() && peek().type != Token::Type::END_OF_FILE)
-        {
-            if (match(Token::Type::SEMICOLON)) continue;
+    while (!end() && peek().type != Token::Type::END_OF_FILE) {
+        if (match(Token::Type::SEMICOLON))
+            continue;
 
-            root->children.push_back( parse_statement());
+        root->children.push_back(parse_statement());
+    }
+
+    return root;
+}
+
+std::unique_ptr<BaseNode> Parser::parse_statement() {
+    Token current = peek();
+
+    switch (current.type) {
+    case Token::Type::KEYWORD_LET: {
+        next();
+        if (!check(Token::Type::IDENTIFIER))
+
+            raise_error("Expected identifier, got '" + peek().value + "'");
+
+        std::string name = next().value;
+        std::string type;
+
+        std::cout << token_type_to_string(peek().type) << std::endl;
+        if (match(Token::Type::COLON)) {
+            if (!check(Token::Type::IDENTIFIER))
+                raise_error("Expected type name, got '" + peek().value + "'");
+
+            type = next().value;
+            std::cout << type << std::endl;
         }
 
-        tree_ = nullptr; // to prevent memory stuff
-
-        return tree;
-    }
-
-    SyntaxTree::Node* Parser::parse_statement()
-    {
-        Token current = peek();
-
-        switch (current.type)
-        {
-            case Token::Type::KEYWORD_LET:
-            {
-                next();
-                if (!check(Token::Type::IDENTIFIER))
-                
-                    raise_error("Expected identifier, got '" + peek().value + "'");
-                
-
-                std::string name = next().value;
-                std::string type;
-
-                std::cout << token_type_to_string(peek().type) << std::endl;
-                if (match(Token::Type::COLON))
-                {
-                    if (!check(Token::Type::IDENTIFIER))
-                        raise_error("Expected type name, got '" + peek().value + "'");
-
-                    type = next().value;
-                    std::cout << type << std::endl;
-                }
-
-                SyntaxTree::Node* value = nullptr;
-                if (match(Token::Type::OPERATOR_ASSIGNMENT))
-                {
-                    value = parse_expression();
-                }
-                else if (type.empty()) 
-                {
-                    std::cout << token_type_to_string(peek().type) << std::endl;
-                    raise_error("Cannot deduce type from declataion");
-                }
-                    
-
-                // declaration & saving
-
-                auto id = tree_->make<SyntaxTree::Id>(name);
-                auto ass = tree_->make<SyntaxTree::OpBinary>(id, value, Token::Type::OPERATOR_ASSIGNMENT);
-                auto vardecl = tree_->make<SyntaxTree::StmVarDecl>(ass, type);
-
-                if (!match(Token::Type::SEMICOLON))
-                    raise_error("Expected ';', got '" + peek().value + "'");
-
-                return vardecl;
-            }
-
-            case Token::Type::KEYWORD_EXIT:
-            {
-                next();
-
-                auto status = parse_expression();
-                auto stm = tree_->make<SyntaxTree::StmExit>(status);
-
-                if (!match(Token::Type::SEMICOLON))
-                    raise_error("Expected ';', got '" + peek().value + "'");
-
-                return stm;
-            }
-
-            case Token::Type::KEYWORD_RETURN:
-            {
-                next();
-
-                auto value = parse_expression();
-                auto stm = tree_->make<SyntaxTree::StmReturn>(value);
-
-                if (!match(Token::Type::SEMICOLON))
-                    raise_error("Expected ';', got '" + peek().value + "'");
-
-                return stm;
-            }
-
-            case Token::Type::KEYWORD_FUNC:
-            {
-                next(); // consume 'func'
-
-                if (!check(Token::Type::IDENTIFIER))
-                    raise_error("Expected identifier, got '" + peek().value + "'");
-
-                std::string name = peek().value;
-                next();
-
-                if (!match(Token::Type::LEFT_PAREN))
-                    raise_error("Expected '(', got '" + peek().value + "'");
-
-                std::vector<SyntaxTree::FuncParam> params;
-
-                if (!check(Token::Type::RIGHT_PAREN))
-                {
-                    while (true)
-                    {
-                        // parameter name
-                        if (!check(Token::Type::IDENTIFIER))
-                            raise_error(
-                                "Expected parameter name, got '" + peek().value + "'");
-
-                        std::string param_name = peek().value;
-                        next();
-
-                        if (!match(Token::Type::COLON))
-                            raise_error(
-                                "Expected ':' after parameter name, got '" + peek().value + "'");
-
-                        // parameter type
-                        if (!check(Token::Type::IDENTIFIER))
-                            raise_error(
-                                "Expected parameter type, got '" + peek().value + "'");
-
-                        std::string param_type = peek().value;
-                        next();
-
-                        params.push_back({param_name, param_type});
-
-                        // check if its another parameter
-                        if (!match(Token::Type::COMMA))
-                            break;
-                    }
-                }
-
-                if (!match(Token::Type::RIGHT_PAREN))
-                    raise_error("Expected ')', got '" + peek().value + "'");
-
-                // return type is required
-                if (!match(Token::Type::COLON))
-                    raise_error("Expected ':' for return type, got '" + peek().value + "'");
-
-                if (!check(Token::Type::IDENTIFIER))
-                    raise_error("Expected type name, got '" + peek().value + "'");
-
-                std::string return_type = peek().value;
-                next();
-
-                if (!match(Token::Type::LEFT_BRACE))
-                    raise_error("Expected '{', got '" + peek().value + "'");
-
-                auto block = parse_block();
-
-                if (!match(Token::Type::RIGHT_BRACE))
-                    raise_error("Expected '}', got '" + peek().value + "'");
-
-                return tree_->make<SyntaxTree::StmFunc>(block, name, return_type, params);
-            }
-
-            default:
-            {
-                auto expr = parse_expression();
-                if (!match(Token::Type::SEMICOLON))
-                    raise_error("Expected ';', got '" + peek().value + "'");
-                return expr;
-            }
-        }
-    }
-
-    SyntaxTree::Node* Parser::parse_expression()
-    {
-        return parse_assignment();
-    }
-
-    SyntaxTree::Block* Parser::parse_block()
-    {
-        auto block = tree_->make<SyntaxTree::Block>();
-
-        while (!end() && !(check(Token::Type::END_OF_FILE) || check(Token::Type::RIGHT_BRACE)))
-        {
-            block->children.push_back( parse_statement());
-
+        std::optional<std::unique_ptr<Expression>> value = std::nullopt;
+        if (match(Token::Type::OPERATOR_ASSIGNMENT)) {
+            value = std::move(parse_expression());
+        } else if (type.empty()) {
+            std::cout << token_type_to_string(peek().type) << std::endl;
+            raise_error("Cannot deduce type from declataion");
         }
 
-        return block;
+        auto let = std::make_unique<Let>(name, type, value);
+
+        if (!match(Token::Type::SEMICOLON))
+            raise_error("Expected ';', got '" + peek().value + "'");
+
+        return let;
     }
 
-    SyntaxTree::Node* Parser::parse_primary()
-    {
-        auto token = peek();
+    case Token::Type::KEYWORD_EXIT: {
         next();
 
-        SyntaxTree::Node* node;
-        switch (token.type)
-        {
-            case (Token::Type::LITERAL_INT):
-            {
-                i64 value;
+        auto stm = std::make_unique<Exit>(parse_expression());
 
-                auto [ptr, ec] = std::from_chars(token.value.data(), token.value.data() + token.value.size(), value);
+        if (!match(Token::Type::SEMICOLON))
+            raise_error("Expected ';', got '" + peek().value + "'");
 
-                if (ec != std::errc())
-                {
-                    // invalid number
-                    raise_error("Integer literal '" + token.value + "' out of range");
-                }
+        return stm;
+    }
 
-                node = tree_->make<SyntaxTree::LitInt>(value);
-                break;
-            }
-            case (Token::Type::LITERAL_FLOAT):
-            {
-                double value;
+    case Token::Type::KEYWORD_RETURN: {
+        next();
 
-                auto [ptr, ec] = std::from_chars(token.value.data(), token.value.data() + token.value.size(), value);
+        auto stm = std::make_unique<Return>(parse_expression());
 
-                if (ec == std::errc::invalid_argument)
-                {
-                    raise_error("Invalid floating-point literal '" + token.value + "'");
-                }
+        if (!match(Token::Type::SEMICOLON))
+            raise_error("Expected ';', got '" + peek().value + "'");
 
-                else if (ec == std::errc::result_out_of_range)
-                {
-                    raise_error("Floating-point literal '" + token.value + "' out of range");
-                }
+        return stm;
+    }
 
-                node = tree_->make<SyntaxTree::LitFloat>(value);
-                break;
-            }
+    case Token::Type::KEYWORD_FUNC: {
+        next(); // consume 'func'
 
-            case (Token::Type::LITERAL_CHAR):
-            {
-                char value = token.value[0];
-                assert(token.value.size() == 1);
+        if (!check(Token::Type::IDENTIFIER))
+            raise_error("Expected identifier, got '" + peek().value + "'");
 
-                node = tree_->make<SyntaxTree::LitChar>(value);
-                break;
-            }
+        std::string name = peek().value;
+        next();
 
-            case (Token::Type::LITERAL_STRING):
-            {
-                node = tree_->make<SyntaxTree::LitString>(token.value);
-                break;
-            }
+        if (!match(Token::Type::LEFT_PAREN))
+            raise_error("Expected '(', got '" + peek().value + "'");
 
-            case (Token::Type::KEYWORD_TRUE):
-            {
-                node = tree_->make<SyntaxTree::LitBool>(true);
-                break;
-            }
+        std::vector<Func::Param> params;
 
-            case (Token::Type::KEYWORD_FALSE):
-            {
-                node = tree_->make<SyntaxTree::LitBool>(false);
-                break;
-            }
+        if (!check(Token::Type::RIGHT_PAREN)) {
+            while (true) {
+                // parameter name
+                if (!check(Token::Type::IDENTIFIER))
+                    raise_error("Expected parameter name, got '" + peek().value + "'");
 
-            case (Token::Type::IDENTIFIER):
-            {
-                node = tree_->make<SyntaxTree::Id>(token.value);
-                break;
-            }
+                std::string param_name = peek().value;
+                next();
 
-            case (Token::Type::LEFT_PAREN):
-            {
-                node = parse_expression();
-                if (!match(Token::Type::RIGHT_PAREN))
-                    raise_error("Expected ')', got '" + peek().value + "'");
-                break;
-            }
+                if (!match(Token::Type::COLON))
+                    raise_error("Expected ':' after parameter name, got '" + peek().value + "'");
 
-            default:
-            {
-                raise_error("Expected expression, got '" + token.value + "'");
+                // parameter type
+                if (!check(Token::Type::IDENTIFIER))
+                    raise_error("Expected parameter type, got '" + peek().value + "'");
+
+                std::string param_type = peek().value;
+                next();
+
+                params.push_back(Func::Param{param_type, param_name});
+
+                // check if its another parameter
+                if (!match(Token::Type::COMMA))
+                    break;
             }
         }
 
+        if (!match(Token::Type::RIGHT_PAREN))
+            raise_error("Expected ')', got '" + peek().value + "'");
+
+        // return type is required
+        if (!match(Token::Type::COLON))
+            raise_error("Expected ':' for return type, got '" + peek().value + "'");
+
+        if (!check(Token::Type::IDENTIFIER))
+            raise_error("Expected type name, got '" + peek().value + "'");
+
+        std::string return_type = peek().value;
+        next();
+
+        if (!match(Token::Type::LEFT_BRACE))
+            raise_error("Expected '{', got '" + peek().value + "'");
+
+        auto block = parse_block();
+
+        if (!match(Token::Type::RIGHT_BRACE))
+            raise_error("Expected '}', got '" + peek().value + "'");
+
+        return std::make_unique<Func>(name, return_type, params, block);
+    }
+
+    default: {
+        auto expr = parse_expression();
+        if (!match(Token::Type::SEMICOLON))
+            raise_error("Expected ';', got '" + peek().value + "'");
+        return expr;
+    }
+    }
+}
+
+std::unique_ptr<Expression> Parser::parse_expression() { return parse_logical_or(); }
+
+std::unique_ptr<Block> Parser::parse_block() {
+    auto block = std::make_unique<Block>();
+
+    while (!end() && !(check(Token::Type::END_OF_FILE) || check(Token::Type::RIGHT_BRACE))) {
+        block->children.push_back(parse_statement());
+    }
+
+    return block;
+}
+
+std::unique_ptr<Expression> Parser::parse_primary() {
+    auto token = peek();
+    next();
+
+    switch (token.type) {
+    case (Token::Type::LITERAL_INT): {
+        i64 value;
+
+        auto [ptr, ec] =
+            std::from_chars(token.value.data(), token.value.data() + token.value.size(), value);
+
+        if (ec != std::errc()) {
+            // invalid number
+            raise_error("Integer literal '" + token.value + "' out of range");
+        }
+
+        return std::make_unique<IntLiteral>(value);
+    }
+    case (Token::Type::LITERAL_FLOAT): {
+        double value;
+
+        auto [ptr, ec] =
+            std::from_chars(token.value.data(), token.value.data() + token.value.size(), value);
+
+        if (ec == std::errc::invalid_argument) {
+            raise_error("Invalid floating-point literal '" + token.value + "'");
+        }
+
+        else if (ec == std::errc::result_out_of_range) {
+            raise_error("Floating-point literal '" + token.value + "' out of range");
+        }
+
+        return std::make_unique<FloatLiteral>(value);
+    }
+
+    case (Token::Type::LITERAL_CHAR): {
+        char value = token.value[0];
+        assert(token.value.size() == 1);
+
+        return std::make_unique<CharLiteral>(value);
+    }
+
+    case (Token::Type::LITERAL_STRING): {
+        return std::make_unique<StringLiteral>(token.value);
+    }
+
+    case (Token::Type::KEYWORD_TRUE): {
+        return std::make_unique<BoolLiteral>(true);
+    }
+
+    case (Token::Type::KEYWORD_FALSE): {
+        return std::make_unique<BoolLiteral>(false);
+    }
+
+    case (Token::Type::IDENTIFIER): {
+        return std::make_unique<Identifier>(token.value);
+    }
+
+    case (Token::Type::LEFT_PAREN): {
+        auto node = parse_expression();
+        if (!match(Token::Type::RIGHT_PAREN))
+            raise_error("Expected ')', got '" + peek().value + "'");
         return node;
     }
 
-    SyntaxTree::Node* Parser::parse_assignment()
-    {
-        auto left = parse_logical_or();
-
-        if (match(Token::Type::OPERATOR_ASSIGNMENT))
-        {
-            Token::Type op = Token::Type::OPERATOR_ASSIGNMENT;
-
-            auto right = parse_logical_or();
-
-            return tree_->make<SyntaxTree::OpBinary>(left, right, op);
-        }
-
-        return left;
+    default: {
+        raise_error("Expected expression, got '" + token.value + "'");
+    }
     }
 
-    SyntaxTree::Node* Parser::parse_logical_or()
-    {
-        auto left = parse_logical_and();
+    return nullptr;
+}
 
-        while (match(Token::Type::OPERATOR_LOGICAL_OR))
-        {
-            Token::Type op = Token::Type::OPERATOR_LOGICAL_OR;
+std::unique_ptr<Expression> Parser::parse_logical_or() {
+    auto left = parse_logical_and();
 
-            auto right = parse_logical_and();
+    while (match(Token::Type::OPERATOR_LOGICAL_OR)) {
+        Token::Type op = Token::Type::OPERATOR_LOGICAL_OR;
 
-            left = tree_->make<SyntaxTree::OpBinary>(left, right, op);
-        }
+        auto right = parse_logical_and();
 
-        return left;
+        left = std::make_unique<BinaryOp>(left, right, op);
     }
 
-    SyntaxTree::Node* Parser::parse_logical_and()
-    {
-        auto left = parse_bitwise_or();
+    return left;
+}
 
-        while (match(Token::Type::OPERATOR_LOGICAL_AND))
-        {
-            Token::Type op = Token::Type::OPERATOR_LOGICAL_AND;
+std::unique_ptr<Expression> Parser::parse_logical_and() {
+    auto left = parse_bitwise_or();
 
-            auto right = parse_bitwise_or();
+    while (match(Token::Type::OPERATOR_LOGICAL_AND)) {
+        Token::Type op = Token::Type::OPERATOR_LOGICAL_AND;
 
-            left = tree_->make<SyntaxTree::OpBinary>(left, right, op);
-        }
+        auto right = parse_bitwise_or();
 
-        return left;
+        left = std::make_unique<BinaryOp>(left, right, op);
     }
 
-    SyntaxTree::Node* Parser::parse_bitwise_or()
-    {
-        auto left = parse_bitwise_xor();
+    return left;
+}
 
-        while (match(Token::Type::OPERATOR_BITWISE_OR))
-        {
-            Token::Type op = Token::Type::OPERATOR_BITWISE_OR;
+std::unique_ptr<Expression> Parser::parse_bitwise_or() {
+    auto left = parse_bitwise_xor();
 
-            auto right = parse_bitwise_xor();
+    while (match(Token::Type::OPERATOR_BITWISE_OR)) {
+        Token::Type op = Token::Type::OPERATOR_BITWISE_OR;
 
-            left = tree_->make<SyntaxTree::OpBinary>(left, right, op);
-        }
+        auto right = parse_bitwise_xor();
 
-        return left;
+        left = std::make_unique<BinaryOp>(left, right, op);
     }
 
-    SyntaxTree::Node* Parser::parse_bitwise_xor()
-    {
-        auto left = parse_bitwise_and();
+    return left;
+}
 
-        while (match(Token::Type::OPERATOR_BITWISE_XOR))
-        {
-            Token::Type op = Token::Type::OPERATOR_BITWISE_XOR;
+std::unique_ptr<Expression> Parser::parse_bitwise_xor() {
+    auto left = parse_bitwise_and();
 
-            auto right = parse_bitwise_and();
+    while (match(Token::Type::OPERATOR_BITWISE_XOR)) {
+        Token::Type op = Token::Type::OPERATOR_BITWISE_XOR;
 
-            left = tree_->make<SyntaxTree::OpBinary>(left, right, op);
-        }
+        auto right = parse_bitwise_and();
 
-        return left;
+        left = std::make_unique<BinaryOp>(left, right, op);
     }
 
-    SyntaxTree::Node* Parser::parse_bitwise_and()
-    {
-        auto left = parse_eq_comparison();
+    return left;
+}
 
-        while (match(Token::Type::OPERATOR_BITWISE_AND))
-        {
-            Token::Type op = Token::Type::OPERATOR_BITWISE_AND;
+std::unique_ptr<Expression> Parser::parse_bitwise_and() {
+    auto left = parse_eq_comparison();
 
-            auto right = parse_eq_comparison();
+    while (match(Token::Type::OPERATOR_BITWISE_AND)) {
+        Token::Type op = Token::Type::OPERATOR_BITWISE_AND;
 
-            left = tree_->make<SyntaxTree::OpBinary>(left, right, op);
-        }
+        auto right = parse_eq_comparison();
 
-        return left;
+        left = std::make_unique<BinaryOp>(left, right, op);
     }
 
-    SyntaxTree::Node* Parser::parse_eq_comparison()
-    {
-        auto left = parse_lm_comparison();
+    return left;
+}
 
-        while (check(Token::Type::OPERATOR_COMP_EQ) || check(Token::Type::OPERATOR_COMP_NEQ))
-        {
-            Token::Type op = next().type;
+std::unique_ptr<Expression> Parser::parse_eq_comparison() {
+    auto left = parse_lm_comparison();
 
-            auto right = parse_lm_comparison();
+    while (check(Token::Type::OPERATOR_COMP_EQ) || check(Token::Type::OPERATOR_COMP_NEQ)) {
+        Token::Type op = next().type;
 
-            left = tree_->make<SyntaxTree::OpBinary>(left, right, op);
-        }
+        auto right = parse_lm_comparison();
 
-        return left;
+        left = std::make_unique<BinaryOp>(left, right, op);
     }
 
-    SyntaxTree::Node* Parser::parse_lm_comparison()
-    {
-        auto left = parse_bitwise_shifts();
+    return left;
+}
 
-        while (check(Token::Type::OPERATOR_COMP_LESS) || check(Token::Type::OPERATOR_COMP_LESSEQ) ||
-            check(Token::Type::OPERATOR_COMP_MORE) || check(Token::Type::OPERATOR_COMP_MOREEQ))
-        {
-            Token::Type op = next().type;
+std::unique_ptr<Expression> Parser::parse_lm_comparison() {
+    auto left = parse_bitwise_shifts();
 
-            auto right = parse_bitwise_shifts();
+    while (check(Token::Type::OPERATOR_COMP_LESS) || check(Token::Type::OPERATOR_COMP_LESSEQ) ||
+           check(Token::Type::OPERATOR_COMP_MORE) || check(Token::Type::OPERATOR_COMP_MOREEQ)) {
+        Token::Type op = next().type;
 
-            left = tree_->make<SyntaxTree::OpBinary>(left, right, op);
-        }
+        auto right = parse_bitwise_shifts();
 
-        return left;
+        left = std::make_unique<BinaryOp>(left, right, op);
     }
 
-    SyntaxTree::Node* Parser::parse_bitwise_shifts()
-    {
-        auto left = parse_additive();
+    return left;
+}
 
-        while (check(Token::Type::OPERATOR_BITWISE_SHL) || check(Token::Type::OPERATOR_BITWISE_SHR))
-        {
-            Token::Type op = next().type;
+std::unique_ptr<Expression> Parser::parse_bitwise_shifts() {
+    auto left = parse_additive();
 
-            auto right = parse_additive();
+    while (check(Token::Type::OPERATOR_BITWISE_SHL) || check(Token::Type::OPERATOR_BITWISE_SHR)) {
+        Token::Type op = next().type;
 
-            left = tree_->make<SyntaxTree::OpBinary>(left, right, op);
-        }
+        auto right = parse_additive();
 
-        return left;
+        left = std::make_unique<BinaryOp>(left, right, op);
     }
 
-    SyntaxTree::Node* Parser::parse_additive()
-    {
-        auto left = parse_multiplicative();
+    return left;
+}
 
-        while (check(Token::Type::OPERATOR_PLUS) || check(Token::Type::OPERATOR_MINUS))
-        {
-            Token::Type op = next().type;
-            auto right = parse_multiplicative();
+std::unique_ptr<Expression> Parser::parse_additive() {
+    auto left = parse_multiplicative();
 
-            left = tree_->make<SyntaxTree::OpBinary>(left, right, op);
-        }
+    while (check(Token::Type::OPERATOR_PLUS) || check(Token::Type::OPERATOR_MINUS)) {
+        Token::Type op = next().type;
+        auto right = parse_multiplicative();
 
-        return left;
+        left = std::make_unique<BinaryOp>(left, right, op);
     }
 
-    SyntaxTree::Node* Parser::parse_multiplicative()
-    {
-        auto left = parse_unary();
+    return left;
+}
 
-        while (check(Token::Type::OPERATOR_STAR) || check(Token::Type::OPERATOR_SLASH) || 
-               check(Token::Type::OPERATOR_PERCENT))
-        {
-            Token::Type op = next().type;
-            auto right = parse_unary();
+std::unique_ptr<Expression> Parser::parse_multiplicative() {
+    auto left = parse_unary();
 
-            left = tree_->make<SyntaxTree::OpBinary>(left, right, op);
-        }
+    while (check(Token::Type::OPERATOR_STAR) || check(Token::Type::OPERATOR_SLASH) ||
+           check(Token::Type::OPERATOR_PERCENT)) {
+        Token::Type op = next().type;
+        auto right = parse_unary();
 
-        return left;
+        left = std::make_unique<BinaryOp>(left, right, op);
     }
 
-    SyntaxTree::Node* Parser::parse_unary()
-    {
-        if (check(Token::Type::OPERATOR_MINUS) || check(Token::Type::OPERATOR_PLUS) || 
-            check(Token::Type::OPERATOR_BITWISE_NOT) || check(Token::Type::OPERATOR_LOGICAL_NOT))
-        {
-            Token::Type op = next().type;
-            auto operand = parse_unary();
+    return left;
+}
 
-            return tree_->make<SyntaxTree::OpUnary>(operand, op);
-        }
+std::unique_ptr<Expression> Parser::parse_unary() {
+    if (check(Token::Type::OPERATOR_MINUS) || check(Token::Type::OPERATOR_PLUS) ||
+        check(Token::Type::OPERATOR_BITWISE_NOT) || check(Token::Type::OPERATOR_LOGICAL_NOT)) {
+        Token::Type op = next().type;
+        auto operand = parse_unary();
 
-        return parse_postfix();
+        return std::make_unique<UnaryOp>(operand, op);
     }
 
-    SyntaxTree::Node* Parser::parse_postfix()
-    {
-        auto* expr = parse_primary();
+    return parse_postfix();
+}
 
-        while (true)
-        {
-            if (match(Token::Type::LEFT_PAREN))
-            {
-                std::vector<SyntaxTree::Node*> args;
+std::unique_ptr<Expression> Parser::parse_postfix() {
+    auto expr = parse_primary();
 
-                if (!check(Token::Type::RIGHT_PAREN))
-                {
-                    do {
-                        args.push_back(parse_expression());
-                    }while (match(Token::Type::COMMA));
-                }
+    while (true) {
+        if (match(Token::Type::LEFT_PAREN)) {
+            std::vector<std::unique_ptr<Expression>> args;
 
-                if (!match(Token::Type::RIGHT_PAREN))
-                    raise_error("Expected ')', got '" + peek().value + "'");
-
-                expr = tree_->make<SyntaxTree::Call>(expr, args);
-                continue;
+            if (!check(Token::Type::RIGHT_PAREN)) {
+                do {
+                    args.push_back(parse_expression());
+                } while (match(Token::Type::COMMA));
             }
 
-            break;
+            if (!match(Token::Type::RIGHT_PAREN))
+                raise_error("Expected ')', got '" + peek().value + "'");
+
+            expr = std::make_unique<Call>(expr, args);
+            continue;
         }
 
-        return expr;
+        break;
     }
+
+    return expr;
 }
+} // namespace yuzu

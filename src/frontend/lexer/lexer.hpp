@@ -17,52 +17,49 @@
 */
 
 #pragma once
-#include "frontend/lexer/token.hpp"
 #include "core/core.hpp"
+#include "frontend/lexer/token.hpp"
 #include <algorithm>
 #include <string>
 #include <vector>
 
-namespace yuzu
-{
-    // class for lexical analysis
-    // turns source code to token list
-    class Lexer 
-    {
-        public:
-        Lexer(const std::string& str) : source_(str) {}
-        std::vector<Token> tokenize();
+namespace yuzu {
 
-        private:
-        std::string source_;
-        usize pos_ = 0;
-        std::vector<Token>* p_tokens_;
+class Lexer {
+  public:
+    Lexer(const std::string& str) : source_(str) {}
+    std::vector<Token> tokenize();
 
-        inline char peek(isize offset = 0) const
-        {
-            const auto index = std::clamp<isize>(isize(pos_) + offset, 0, source_.size() - 1);
+  private:
+    std::string source_;
+    usize pos_ = 0;
+    std::vector<Token>* p_tokens_;
 
-            return source_.at(index);
-        }
-        inline char next() { ++pos_; return peek(-1); }
-        inline bool end() const { return pos_ >= source_.size(); }
-        inline bool check(char c) const { return peek() == c; }
-        inline bool match(char c) 
-        { 
-            if (end() || peek() != c)
-            {
-                return false;
-            }
+    inline char peek(isize offset = 0) const {
+        const auto index = std::clamp<isize>(isize(pos_) + offset, 0, source_.size() - 1);
 
-            next();
-            return true;
+        return source_.at(index);
+    }
+    inline char next() {
+        ++pos_;
+        return peek(-1);
+    }
+    inline bool end() const { return pos_ >= source_.size(); }
+    inline bool check(char c) const { return peek() == c; }
+    inline bool match(char c) {
+        if (end() || peek() != c) {
+            return false;
         }
 
-        void tokenize_word(); // word as in identifier/keyword
-        void tokenize_num();
-        void tokenize_symbol();
-        void tokenize_string();
-        void tokenize_char();
-        void skip_comment();
-    };
-}
+        next();
+        return true;
+    }
+
+    void tokenize_word(); // word as in identifier/keyword
+    void tokenize_num();
+    void tokenize_symbol();
+    void tokenize_string();
+    void tokenize_char();
+    void skip_comment();
+};
+} // namespace yuzu
