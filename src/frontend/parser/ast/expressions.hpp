@@ -18,7 +18,6 @@
 
 #pragma once
 
-#include "core/type.hpp"
 #include "frontend/lexer/token.hpp"
 #include "frontend/parser/ast/node.hpp"
 #include <memory>
@@ -64,9 +63,9 @@ struct Identifier : public Expression {
 
 struct Cast : public Expression {
     std::unique_ptr<Expression> expression;
-    NativeType type;
+    std::string type;
 
-    Cast(std::unique_ptr<Expression> expression, NativeType type)
+    Cast(std::unique_ptr<Expression> expression, const std::string& type)
         : Expression(NodeKind::CAST), type(type), expression(std::move(expression)) {}
 };
 
@@ -91,7 +90,7 @@ struct UnaryOp : public Expression {
     Token::Type op;
 
     UnaryOp(std::unique_ptr<Expression>& operand, Token::Type op)
-        : Expression(NodeKind::OP_BINARY), operand(std::move(operand)), op(op) {}
+        : Expression(NodeKind::OP_UNARY), operand(std::move(operand)), op(op) {}
 };
 
 } // namespace yuzu

@@ -16,24 +16,25 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#pragma once
-
-#include "frontend/parser/ast/node.hpp"
-#include <memory>
+#include "frontend/sema/scope.hpp"
+#include "frontend/sema/symbol.hpp"
 
 namespace yuzu {
 
-struct Exit : public Statement {
-    std::unique_ptr<Expression> value;
+VariableSymbol* Scope::lookup(const std::string& name) {
 
-    Exit(std::unique_ptr<Expression> value) : Statement(NodeKind::EXIT), value(std::move(value)) {}
-};
+    auto it = locals.find(name);
 
-struct Return : public Statement {
-    std::unique_ptr<Expression> value;
+    if (it == locals.end())
+        return nullptr;
 
-    Return(std::unique_ptr<Expression> value)
-        : Statement(NodeKind::RETURN), value(std::move(value)) {}
-};
+    return &it->second;
+}
+Scope::Scope(const std::vector<VariableSymbol>& params) {
+    for (auto& symbol : params) {
+        locals.emplace(symbol.name, symbol);
+    }
+}
+void Scope::define(VariableSymbol symbol) { locals.emplace(symbol.name, symbol); }
 
 } // namespace yuzu

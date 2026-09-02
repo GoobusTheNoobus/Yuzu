@@ -29,23 +29,24 @@ namespace yuzu {
 // turns token list to abstract syntax tree
 class Parser {
   public:
-    Parser(const std::vector<Token>& tokens) : tokens_(tokens) {}
+    Parser(const std::vector<Token>& tokens) : tokens(tokens) {}
     std::unique_ptr<Root> parse();
 
   private:
-    const std::vector<Token> tokens_;
-    usize pos_ = 0;
+    const std::vector<Token> tokens;
+    usize pos = 0;
 
     inline const Token& peek(isize offset = 0) const {
-        const auto index = std::clamp<isize>(isize(pos_) + offset, 0, tokens_.size() - 1);
+        const auto index = std::clamp<isize>(isize(pos) + offset, 0, tokens.size() - 1);
 
-        return tokens_.at(index);
+        return tokens.at(index);
     }
+    inline const Token& previous() const { return tokens.at(isize(pos) - 1); }
     inline const Token& next() {
-        ++pos_;
+        ++pos;
         return peek(-1);
     }
-    inline bool end() const { return pos_ >= tokens_.size(); }
+    inline bool end() const { return pos >= tokens.size(); }
     inline bool check(Token::Type t) const { return peek().type == t; }
     inline bool match(Token::Type t) {
         if (end() || peek().type != t) {
@@ -60,6 +61,7 @@ class Parser {
     std::unique_ptr<Expression> parse_expression();
     std::unique_ptr<Block> parse_block();
 
+    std::unique_ptr<Expression> parse_assignment();
     std::unique_ptr<Expression> parse_logical_or();
     std::unique_ptr<Expression> parse_logical_and();
     std::unique_ptr<Expression> parse_bitwise_or();

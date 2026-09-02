@@ -18,22 +18,36 @@
 
 #pragma once
 
-#include "frontend/parser/ast/node.hpp"
-#include <memory>
+#include <string>
+#include <vector>
 
 namespace yuzu {
 
-struct Exit : public Statement {
-    std::unique_ptr<Expression> value;
+struct BaseSymbol {
+    std::string name;
 
-    Exit(std::unique_ptr<Expression> value) : Statement(NodeKind::EXIT), value(std::move(value)) {}
+    BaseSymbol(const std::string& name) : name(name) {}
 };
 
-struct Return : public Statement {
-    std::unique_ptr<Expression> value;
+struct VariableSymbol : BaseSymbol {
+    std::string type;
 
-    Return(std::unique_ptr<Expression> value)
-        : Statement(NodeKind::RETURN), value(std::move(value)) {}
+    VariableSymbol(const std::string& name, const std::string& type)
+        : BaseSymbol(name), type(type) {}
+};
+
+struct FunctionSymbol : BaseSymbol {
+    std::vector<std::string> params;
+    std::string type;
+
+    FunctionSymbol(const std::string& name, const std::vector<std::string>& params,
+                   const std::string& type)
+        : BaseSymbol(name), params(params), type(type) {}
+};
+
+struct TypeSymbol : BaseSymbol {
+
+    TypeSymbol(const std::string& name) : BaseSymbol(name) {}
 };
 
 } // namespace yuzu

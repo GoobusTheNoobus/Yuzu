@@ -39,6 +39,8 @@ std::unique_ptr<Root> Parser::parse() {
     auto root = std::make_unique<Root>();
 
     while (!end() && peek().type != Token::Type::END_OF_FILE) {
+        // std::cout << peek() << std::endl;
+
         if (match(Token::Type::SEMICOLON))
             continue;
 
@@ -61,27 +63,26 @@ std::unique_ptr<BaseNode> Parser::parse_statement() {
         std::string name = next().value;
         std::string type;
 
-        std::cout << token_type_to_string(peek().type) << std::endl;
+        // std::cout << token_type_to_string(peek().type) << std::endl;
         if (match(Token::Type::COLON)) {
             if (!check(Token::Type::IDENTIFIER))
                 raise_error("Expected type name, got '" + peek().value + "'");
 
             type = next().value;
-            std::cout << type << std::endl;
+            // std::cout << type << std::endl;
         }
 
         std::optional<std::unique_ptr<Expression>> value = std::nullopt;
         if (match(Token::Type::OPERATOR_ASSIGNMENT)) {
             value = std::move(parse_expression());
-        } else if (type.empty()) {
-            std::cout << token_type_to_string(peek().type) << std::endl;
-            raise_error("Cannot deduce type from declataion");
         }
 
         auto let = std::make_unique<Let>(name, type, value);
 
-        if (!match(Token::Type::SEMICOLON))
+        if (!match(Token::Type::SEMICOLON)) {
+            // std::cout << peek() << std::endl;
             raise_error("Expected ';', got '" + peek().value + "'");
+        }
 
         return let;
     }
@@ -109,6 +110,7 @@ std::unique_ptr<BaseNode> Parser::parse_statement() {
     }
 
     case Token::Type::KEYWORD_FUNC: {
+
         next(); // consume 'func'
 
         if (!check(Token::Type::IDENTIFIER))
@@ -173,6 +175,17 @@ std::unique_ptr<BaseNode> Parser::parse_statement() {
         return std::make_unique<Func>(name, return_type, params, block);
     }
 
+    case Token::Type::LEFT_BRACE: {
+        next(); // consume {
+
+        auto block = parse_block();
+
+        if (!match(Token::Type::RIGHT_BRACE))
+            raise_error("Expected '}', got '" + peek().value + "'");
+
+        return block;
+    }
+
     default: {
         auto expr = parse_expression();
         if (!match(Token::Type::SEMICOLON))
@@ -182,14 +195,26 @@ std::unique_ptr<BaseNode> Parser::parse_statement() {
     }
 }
 
-std::unique_ptr<Expression> Parser::parse_expression() { return parse_logical_or(); }
+std::unique_ptr<Expression> Parser::parse_expression() { return parse_assignment(); }
+
+std::unique_ptr<Expression> Parser::parse_assignment() {
+    auto left = parse_logical_or();
+
+    if (match(Token::Type::OPERATOR_ASSIGNMENT)) {
+        auto right = parse_assignment();
+        return std::make_unique<BinaryOp>(left, right, Token::Type::OPERATOR_ASSIGNMENT);
+    }
+
+    return left;
+}
 
 std::unique_ptr<Block> Parser::parse_block() {
     auto block = std::make_unique<Block>();
-
+    // std::cerr << peek() << '\n';
     while (!end() && !(check(Token::Type::END_OF_FILE) || check(Token::Type::RIGHT_BRACE))) {
         block->children.push_back(parse_statement());
     }
+    // std::cerr << peek() << '\n';
 
     return block;
 }
@@ -260,6 +285,7 @@ std::unique_ptr<Expression> Parser::parse_primary() {
     }
 
     default: {
+        std::cout << token << std::endl;
         raise_error("Expected expression, got '" + token.value + "'");
     }
     }

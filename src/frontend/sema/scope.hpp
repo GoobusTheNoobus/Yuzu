@@ -18,22 +18,20 @@
 
 #pragma once
 
-#include "frontend/parser/ast/node.hpp"
-#include <memory>
+#include "frontend/sema/symbol.hpp"
+#include <unordered_map>
+#include <vector>
 
 namespace yuzu {
+class Scope {
+  public:
+    Scope() = default;
+    Scope(const std::vector<VariableSymbol>& params);
 
-struct Exit : public Statement {
-    std::unique_ptr<Expression> value;
+    VariableSymbol* lookup(const std::string& name);
+    void define(VariableSymbol symbol);
 
-    Exit(std::unique_ptr<Expression> value) : Statement(NodeKind::EXIT), value(std::move(value)) {}
+  private:
+    std::unordered_map<std::string, VariableSymbol> locals;
 };
-
-struct Return : public Statement {
-    std::unique_ptr<Expression> value;
-
-    Return(std::unique_ptr<Expression> value)
-        : Statement(NodeKind::RETURN), value(std::move(value)) {}
-};
-
 } // namespace yuzu

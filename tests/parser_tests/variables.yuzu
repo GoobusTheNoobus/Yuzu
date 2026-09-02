@@ -1,11 +1,14 @@
 # tests variables
 
+let i : i32;
+let j;
+
 let x = 5;
 let y = 10;
 let z = x + y;
 
-let a = 1 + 2 * 3;
-let b = (1 + 2) * 3;
+let a : i32 = 1 + 2 * 3;
+let b : i32 = (1 + 2) * 3;
 
 x = 10;
 x = x + 1;

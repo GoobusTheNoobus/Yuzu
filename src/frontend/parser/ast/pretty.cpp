@@ -16,10 +16,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#pragma once
-
 #include "frontend/parser/ast/pretty.hpp"
-#include "core/type.hpp"
 #include "frontend/lexer/token.hpp"
 #include "frontend/parser/ast/declarations.hpp"
 #include "frontend/parser/ast/expressions.hpp"
@@ -90,11 +87,24 @@ void pretty_print(const BaseNode& node, int indent) {
 
     case NodeKind::LET: {
         auto& let = static_cast<const Let&>(node);
-        std::cout << get_indent(indent) << "let " << let.name << ':' << native_to_string(let.type);
+        std::cout << get_indent(indent) << "let " << let.name << ": "
+                  << (let.type.empty() ? "<imply>" : let.type);
 
         if (let.value) {
             std::cout << " = \n";
             pretty_print(**let.value, indent + 2);
+        } else
+            std::cout << '\n';
+
+        return;
+    }
+
+    case NodeKind::CALL: {
+        auto& call = static_cast<const Call&>(node);
+        pretty_print(*call.name, indent);
+
+        for (int i = 0; i < call.arguments.size(); ++i) {
+            pretty_print(*call.arguments[i], indent + 2);
         }
 
         return;
@@ -131,22 +141,22 @@ void pretty_print(const BaseNode& node, int indent) {
 
         for (int i = 0; i < func.params.size(); ++i) {
             auto& param = func.params[i];
-            std::cout << param.name << ": " << native_to_string(param.type);
+            std::cout << param.name << ": " << (param.type);
 
             if (i != func.params.size() - 1)
                 std::cout << ", ";
         }
 
-        std::cout << ") : " << native_to_string(func.type) << '\n';
+        std::cout << ") : " << func.type << '\n';
         pretty_print(*func.body, indent + 2);
 
         return;
     }
 
     case NodeKind::BLOCK: {
-        std::cout << get_indent(indent) << "{\n";
+        std::cout << get_indent(indent) << "block {\n";
         for (const auto& node : static_cast<const Block&>(node).children) {
-            pretty_print(*node, 2);
+            pretty_print(*node, indent + 2);
         }
         std::cout << get_indent(indent) << "}\n";
 

@@ -28,7 +28,7 @@ namespace yuzu {
 
 std::vector<Token> Lexer::tokenize() {
     std::vector<Token> tokens;
-    p_tokens_ = &tokens;
+    p_tokens = &tokens;
 
     while (!end()) {
         char c = peek();
@@ -100,7 +100,7 @@ void Lexer::tokenize_word() {
     else if (word == "func")
         store_type = Token::Type::KEYWORD_FUNC;
 
-    p_tokens_->push_back(Token{word, store_type});
+    p_tokens->push_back(Token{word, store_type});
 }
 
 // only supports integers
@@ -127,7 +127,7 @@ void Lexer::tokenize_num() {
         raise_error("Float literal cannot terminate with '.'");
     }
 
-    p_tokens_->push_back(
+    p_tokens->push_back(
         Token{num, is_float ? Token::Type::LITERAL_FLOAT : Token::Type::LITERAL_INT});
 }
 
@@ -185,7 +185,7 @@ void Lexer::tokenize_symbol() {
 
     // value not being empty means one case triggered
     if (!seperator.value.empty()) {
-        p_tokens_->push_back(seperator);
+        p_tokens->push_back(seperator);
         next();
         return;
     }
@@ -194,115 +194,115 @@ void Lexer::tokenize_symbol() {
 
     switch (c) {
     case '+': {
-        p_tokens_->push_back(Token{"+", Token::Type::OPERATOR_PLUS});
+        p_tokens->push_back(Token{"+", Token::Type::OPERATOR_PLUS});
         break;
     }
 
     case '-': {
-        p_tokens_->push_back(Token{"-", Token::Type::OPERATOR_MINUS});
+        p_tokens->push_back(Token{"-", Token::Type::OPERATOR_MINUS});
         break;
     }
 
     case '*': {
-        p_tokens_->push_back(Token{"*", Token::Type::OPERATOR_STAR});
+        p_tokens->push_back(Token{"*", Token::Type::OPERATOR_STAR});
         break;
     }
 
     case '/': {
-        p_tokens_->push_back(Token{"/", Token::Type::OPERATOR_SLASH});
+        p_tokens->push_back(Token{"/", Token::Type::OPERATOR_SLASH});
         break;
     }
 
     case '%': {
-        p_tokens_->push_back(Token{"%", Token::Type::OPERATOR_PERCENT});
+        p_tokens->push_back(Token{"%", Token::Type::OPERATOR_PERCENT});
         break;
     }
 
     case '~': {
-        p_tokens_->push_back(Token{"~", Token::Type::OPERATOR_BITWISE_NOT});
+        p_tokens->push_back(Token{"~", Token::Type::OPERATOR_BITWISE_NOT});
         break;
     }
 
     case '^': {
-        p_tokens_->push_back(Token{"^", Token::Type::OPERATOR_BITWISE_XOR});
+        p_tokens->push_back(Token{"^", Token::Type::OPERATOR_BITWISE_XOR});
         break;
     }
 
     case '=': {
-        if (peek(1) == '=') {
+        if (peek() == '=') {
             next();
-            p_tokens_->push_back(Token{"==", Token::Type::OPERATOR_COMP_EQ});
+            p_tokens->push_back(Token{"==", Token::Type::OPERATOR_COMP_EQ});
             break;
         }
 
-        p_tokens_->push_back(Token{"=", Token::Type::OPERATOR_ASSIGNMENT});
+        p_tokens->push_back(Token{"=", Token::Type::OPERATOR_ASSIGNMENT});
         break;
     }
 
     case '!': {
-        if (peek(1) == '=') {
+        if (peek() == '=') {
             next();
-            p_tokens_->push_back(Token{"!=", Token::Type::OPERATOR_COMP_NEQ});
+            p_tokens->push_back(Token{"!=", Token::Type::OPERATOR_COMP_NEQ});
             break;
         }
 
-        p_tokens_->push_back(Token{"!", Token::Type::OPERATOR_LOGICAL_NOT});
+        p_tokens->push_back(Token{"!", Token::Type::OPERATOR_LOGICAL_NOT});
         break;
     }
 
     case '|': {
-        if (peek(1) == '|') {
+        if (peek() == '|') {
             next();
-            p_tokens_->push_back(Token{"||", Token::Type::OPERATOR_LOGICAL_OR});
+            p_tokens->push_back(Token{"||", Token::Type::OPERATOR_LOGICAL_OR});
             break;
         }
 
-        p_tokens_->push_back(Token{"|", Token::Type::OPERATOR_BITWISE_OR});
+        p_tokens->push_back(Token{"|", Token::Type::OPERATOR_BITWISE_OR});
         break;
     }
 
     case '&': {
-        if (peek(1) == '&') {
+        if (peek() == '&') {
             next();
-            p_tokens_->push_back(Token{"&&", Token::Type::OPERATOR_LOGICAL_AND});
+            p_tokens->push_back(Token{"&&", Token::Type::OPERATOR_LOGICAL_AND});
             break;
         }
 
-        p_tokens_->push_back(Token{"|", Token::Type::OPERATOR_BITWISE_AND});
+        p_tokens->push_back(Token{"&", Token::Type::OPERATOR_BITWISE_AND});
         break;
     }
 
     case '<': {
-        if (peek(1) == '=') {
+        if (peek() == '=') {
             next();
-            p_tokens_->push_back(Token{"<=", Token::Type::OPERATOR_COMP_LESSEQ});
+            p_tokens->push_back(Token{"<=", Token::Type::OPERATOR_COMP_LESSEQ});
             break;
         }
 
-        else if (peek(1) == '<') {
+        else if (peek() == '<') {
             next();
-            p_tokens_->push_back(Token{"<<", Token::Type::OPERATOR_BITWISE_SHL});
+            p_tokens->push_back(Token{"<<", Token::Type::OPERATOR_BITWISE_SHL});
             break;
         }
 
-        p_tokens_->push_back(Token{"<", Token::Type::OPERATOR_COMP_LESS});
+        p_tokens->push_back(Token{"<", Token::Type::OPERATOR_COMP_LESS});
         break;
     }
 
     case '>': {
-        if (peek(1) == '=') {
+        if (peek() == '=') {
             next();
-            p_tokens_->push_back(Token{">=", Token::Type::OPERATOR_COMP_MOREEQ});
+            p_tokens->push_back(Token{">=", Token::Type::OPERATOR_COMP_MOREEQ});
             break;
         }
 
-        else if (peek(1) == '>') {
+        else if (peek() == '>') {
             next();
-            p_tokens_->push_back(Token{">>", Token::Type::OPERATOR_BITWISE_SHR});
+            p_tokens->push_back(Token{">>", Token::Type::OPERATOR_BITWISE_SHR});
             break;
         }
 
-        p_tokens_->push_back(Token{">", Token::Type::OPERATOR_COMP_MORE});
+        p_tokens->push_back(Token{">", Token::Type::OPERATOR_COMP_MORE});
         break;
     }
 
@@ -377,7 +377,7 @@ void Lexer::tokenize_string() {
     }
 
     next(); // consume closing quote
-    p_tokens_->push_back(Token{string, Token::Type::LITERAL_STRING});
+    p_tokens->push_back(Token{string, Token::Type::LITERAL_STRING});
 }
 
 void Lexer::tokenize_char() {
@@ -430,13 +430,13 @@ void Lexer::tokenize_char() {
             raise_error("Unknown escape character '" + std::string(1, escape_character) + "'");
         }
 
-        p_tokens_->push_back(Token{std::string(1, intended_character), Token::Type::LITERAL_CHAR});
+        p_tokens->push_back(Token{std::string(1, intended_character), Token::Type::LITERAL_CHAR});
     }
 
     else {
         char c = next();
 
-        p_tokens_->push_back(Token{std::string(1, c), Token::Type::LITERAL_CHAR});
+        p_tokens->push_back(Token{std::string(1, c), Token::Type::LITERAL_CHAR});
     }
 
     if (!match('\'')) // expect closing quote

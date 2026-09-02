@@ -27,24 +27,24 @@ namespace yuzu {
 
 class Lexer {
   public:
-    Lexer(const std::string& str) : source_(str) {}
+    Lexer(const std::string& str) : source(str) {}
     std::vector<Token> tokenize();
 
   private:
-    std::string source_;
-    usize pos_ = 0;
-    std::vector<Token>* p_tokens_;
+    std::string source;
+    usize pos = 0;
+    std::vector<Token>* p_tokens;
 
     inline char peek(isize offset = 0) const {
-        const auto index = std::clamp<isize>(isize(pos_) + offset, 0, source_.size() - 1);
+        const auto index = std::clamp<isize>(isize(pos) + offset, 0, source.size() - 1);
 
-        return source_.at(index);
+        return source.at(index);
     }
     inline char next() {
-        ++pos_;
+        ++pos;
         return peek(-1);
     }
-    inline bool end() const { return pos_ >= source_.size(); }
+    inline bool end() const { return pos >= source.size(); }
     inline bool check(char c) const { return peek() == c; }
     inline bool match(char c) {
         if (end() || peek() != c) {

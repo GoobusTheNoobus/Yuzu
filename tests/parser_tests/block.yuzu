@@ -1,0 +1,12 @@
+# tests blocks
+
+{}
+
+{
+    let i = 34;
+    foo(i);
+
+    {
+        67;
+    }
+}

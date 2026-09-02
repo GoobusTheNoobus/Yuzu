@@ -1,0 +1,9 @@
+let concated = "Hello " + "world!";
+let math = "1" + 1;
+let n : float32 = 45;
+let b : float64 = 34;
+let implied = n / b;
+
+let x : float64 = 32;
+let n : int64 = 3432423;
+let g : int32 = n;

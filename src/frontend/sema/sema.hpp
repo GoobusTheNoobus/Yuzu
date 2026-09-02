@@ -19,21 +19,35 @@
 #pragma once
 
 #include "frontend/parser/ast/node.hpp"
-#include <memory>
+#include "frontend/sema/scope.hpp"
+#include "frontend/sema/symbol.hpp"
+#include <optional>
+#include <unordered_map>
+#include <vector>
 
 namespace yuzu {
+class Sema {
+  public:
+    Sema();
+    void analyze(Root& root);
 
-struct Exit : public Statement {
-    std::unique_ptr<Expression> value;
+  private:
+    void analyze_block(Block& block);
 
-    Exit(std::unique_ptr<Expression> value) : Statement(NodeKind::EXIT), value(std::move(value)) {}
+    struct Analysis {
+
+        std::optional<std::string> type;
+        VariableSymbol* assignable = nullptr; // represents an lvalue
+
+        inline operator bool() { return type.has_value(); }
+    };
+    Analysis analyze(BaseNode& node);
+
+    std::unordered_map<std::string, FunctionSymbol> functions;
+    std::unordered_map<std::string, TypeSymbol> known_types; // include native types too
+
+    std::vector<Scope> scopes;
+
+    std::optional<std::string> ret_type;
 };
-
-struct Return : public Statement {
-    std::unique_ptr<Expression> value;
-
-    Return(std::unique_ptr<Expression> value)
-        : Statement(NodeKind::RETURN), value(std::move(value)) {}
-};
-
 } // namespace yuzu

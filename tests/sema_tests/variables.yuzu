@@ -1,0 +1,7 @@
+let x: int32 = 10;
+let y: int64 = x;
+let z = 42;
+let f = 34.0;
+let b = true && false;
+
+let y : int32;

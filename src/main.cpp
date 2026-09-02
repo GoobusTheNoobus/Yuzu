@@ -20,14 +20,16 @@
 #include "frontend/lexer/lexer.hpp"
 #include "frontend/parser/ast/pretty.hpp"
 #include "frontend/parser/parser.hpp"
+#include "frontend/sema/sema.hpp"
 
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include <string>
 
-constexpr const char* VERSION = "0.1.6";
+constexpr const char* VERSION = "0.1.7";
 constexpr const char* HELP_MESSAGE = "Yuzu Compiler\n"
                                      "\n"
                                      "Usage:\n"
@@ -73,6 +75,16 @@ int main(int argc, char** argv) {
     std::string file_content = buffer.str();
 
     Lexer lexer(file_content);
-    Parser parser(lexer.tokenize());
-    pretty_print(*parser.parse());
+    auto tokens = lexer.tokenize();
+
+    std::cout << tokens << std::endl;
+
+    Parser parser(tokens);
+    Sema sema;
+
+    std::unique_ptr<Root> root = parser.parse();
+
+    sema.analyze(*root);
+
+    pretty_print(*root);
 }

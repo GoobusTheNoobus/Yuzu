@@ -27,8 +27,11 @@ add_executable(yuzu
     src/main.cpp
     src/frontend/lexer/lexer.cpp
     src/frontend/lexer/token.cpp
-    src/frontend/parser/ast.cpp
+    src/frontend/parser/ast/pretty.cpp
     src/frontend/parser/parser.cpp
+    src/frontend/parser/parser.cpp
+    src/frontend/sema/scope.cpp
+    src/frontend/sema/sema.cpp
 )
 
 target_include_directories(yuzu PRIVATE src)

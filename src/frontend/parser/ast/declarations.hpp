@@ -47,7 +47,7 @@ struct Func : public Declaration {
 
     Func(const std::string& name, const std::string& type, std::vector<Param>& params,
          std::unique_ptr<Block>& body)
-        : Declaration(NodeKind::LET), name(name), type(type), params(params),
+        : Declaration(NodeKind::FUNC), name(name), type(type), params(params),
           body(std::move(body)) {}
 };
 

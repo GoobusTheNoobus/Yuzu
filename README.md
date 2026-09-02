@@ -10,12 +10,12 @@ free of the historical chaos of said language. It has a tunable garbage collecto
 will work, will decide later when designing the GC). 
 
 ## Features
-As of version 0.1.6, here are the features that has been implemented:
+As of version 0.1.7, here are the features that has been implemented:
 * [x] File reader
 * [x] Lexer
 * [X] Abstract syntax tree
 * [X] Parser
-* [ ] Semantic analysis
+* [X] Semantic analysis
 * [ ] Better type system
 * [ ] LLVM Codegen
 * [ ] Better README

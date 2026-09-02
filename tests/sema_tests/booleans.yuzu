@@ -1,0 +1,9 @@
+let boo : bool = true;
+
+func foo(no: bool) : bool {
+    return !no;
+}
+
+foo(boo);
+
+true && false || true && true || (!true || !false || false || !(false && true));

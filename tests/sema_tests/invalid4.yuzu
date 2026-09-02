@@ -1,0 +1,3 @@
+func goon() : int32 {
+    return "Femboys"; # hopefully this never runs
+}
